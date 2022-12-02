@@ -49,15 +49,11 @@ solvePart2 = sum . map (uncurry scorePart2) . parsePart2
 reverseEngineerPlay :: RPS -> Result -> RPS
 reverseEngineerPlay them desiredResult = case desiredResult of
   Draw -> them
-  Win -> beat them
-  Loss -> lose them
-  where 
-    -- the data type is defined in order Rock, Paper, Scissors
-    -- if we consider the cycle of those constructors, each one
-    -- beats its predecessor
-    beat = succCyclic
-    lose = predCyclic
-
+  -- the data type is defined in order Rock, Paper, Scissors
+  -- if we consider the cycle of those constructors, each one
+  -- beats its predecessor
+  Win -> succCyclic them
+  Loss -> predCyclic them
   
 result :: RPS -> RPS -> Result
 result us them = toEnum $ (fromEnum us - fromEnum them + 1) `mod` 3
