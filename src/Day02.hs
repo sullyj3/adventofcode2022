@@ -1,15 +1,21 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Eta reduce" #-}
 module Day02 where
 
-import Data.Semigroup (Endo(..))
-import Optics.Core
+class (Eq a, Enum a, Bounded a) => Cyclic a where
+  succCyclic :: a -> a
+  succCyclic x | x == maxBound = minBound
+               | otherwise = succ x
+
+  predCyclic :: a -> a
+  predCyclic x | x == minBound = maxBound
+               | otherwise = pred x
 
 data RPS = Rock | Paper | Scissors
-  deriving (Eq, Show, Ord, Enum)
+  deriving (Eq, Show, Ord, Enum, Bounded)
 
 data Result = Loss | Draw | Win
-  deriving (Eq, Show, Ord, Enum)
+  deriving (Eq, Show, Ord, Enum, Bounded)
+
+instance Cyclic RPS
 
 parseResult c = case c of
   'X' -> Loss
@@ -46,15 +52,11 @@ reverseEngineerPlay them desiredResult = case desiredResult of
   Win -> beat them
   Loss -> lose them
   where 
-    enumIso :: Enum s => Iso' Int s
-    enumIso = iso toEnum fromEnum
-
     -- the data type is defined in order Rock, Paper, Scissors
     -- if we consider the cycle of those constructors, each one
     -- beats its predecessor
-    enumly = under enumIso
-    beat = enumly $ (`mod` 3) . succ
-    lose = enumly $ (`mod` 3) . pred
+    beat = succCyclic
+    lose = predCyclic
 
   
 result :: RPS -> RPS -> Result
