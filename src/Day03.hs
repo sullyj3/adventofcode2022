@@ -12,11 +12,13 @@ solvePart1 = sum . map (priority . findDup) . lines
     findDup s = head . uncurry intersect . splitAt (length s `div` 2) $ s
 
 
+chunksOf ∷ Int → [a] → [[a]]
 chunksOf n [] = []
-chunksOf n xs = let (chunk, rest) = splitAt n xs
-                 in chunk : chunksOf n rest
+chunksOf n xs = chunk : chunksOf n rest 
+  where (chunk, rest) = splitAt n xs
 
 
+solvePart2 ∷ String → Int
 solvePart2 = sum . map (priority . findCommon) . chunksOf 3 . lines
   where
     findCommon = head . foldl1' intersect
@@ -29,8 +31,8 @@ priority c
   | otherwise = undefined
 
 
+main ∷ IO ()
 main = do
   contents <- readFile "inputs/day03.txt"
   print $ solvePart1 contents
   print $ solvePart2 contents
-  pure ()
