@@ -1,16 +1,15 @@
+{-# LANGUAGE UnicodeSyntax #-}
+
 module Day03 where
 
 import Data.Char (isAsciiLower, isAsciiUpper)
 import Data.List (intersect, foldl1')
 
 
-solvePart1 :: String -> Int
+solvePart1 ∷ String → Int
 solvePart1 = sum . map (priority . findDup) . lines
   where
-    findDup s = let
-      (left, right) = splitAt (length s `div` 2) s
-      dup = head $ left `intersect` right
-      in dup
+    findDup s = head . uncurry intersect . splitAt (length s `div` 2) $ s
 
 
 chunksOf n [] = []
@@ -23,7 +22,7 @@ solvePart2 = sum . map (priority . findCommon) . chunksOf 3 . lines
     findCommon = head . foldl1' intersect
 
 
-priority :: Char -> Int
+priority ∷ Char → Int
 priority c
   | isAsciiLower c = fromEnum c - fromEnum 'a' + 1
   | isAsciiUpper c = fromEnum c - fromEnum 'A' + 27
