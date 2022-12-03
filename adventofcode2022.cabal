@@ -38,5 +38,5 @@ library
     hs-source-dirs:   src
     build-depends:    base ^>=4.16.3.0
                     , optics-core ^>=0.4.1
-    exposed-modules: Utils, Day02
+    exposed-modules: Utils, Day02, Day03
     
