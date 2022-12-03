@@ -1,7 +1,7 @@
 module Day03 where
 
 import Data.Char (isAsciiLower, isAsciiUpper)
-import Data.List (intersect, nub, foldl1')
+import Data.List (intersect, foldl1')
 
 
 solvePart1 :: String -> Int
@@ -9,7 +9,7 @@ solvePart1 = sum . map (priority . findDup) . lines
   where
     findDup s = let
       (left, right) = splitAt (length s `div` 2) s
-      [dup] = nub $ left `intersect` right
+      dup = head $ left `intersect` right
       in dup
 
 
@@ -20,7 +20,7 @@ chunksOf n xs = let (chunk, rest) = splitAt n xs
 
 solvePart2 = sum . map (priority . findCommon) . chunksOf 3 . lines
   where
-    findCommon = head . nub . foldl1' intersect
+    findCommon = head . foldl1' intersect
 
 
 priority :: Char -> Int
