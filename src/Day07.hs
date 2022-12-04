@@ -1,12 +1,11 @@
-module Day07 where
+module Day07 (main) where
 
 import Utils (tRead)
 import qualified Data.Text as T
-import Data.Text (Text)
-import Data.Maybe (fromJust)
 import AOC
 
 
+main :: IO ()
 main = aocMain "inputs/07.txt" Solution {..}
   where
     parse = id

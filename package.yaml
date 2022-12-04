@@ -35,7 +35,6 @@ dependencies:
       - (Relude as Prelude)
   - optics-core
   - time
-  - text
 
 ghc-options:
 - -Wall

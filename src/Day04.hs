@@ -2,7 +2,6 @@ module Day04 where
 
 import Utils (tRead, count, parsePair)
 import qualified Data.Text as T
-import Data.Text (Text)
 
 import AOC
 
