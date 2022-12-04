@@ -1,0 +1,55 @@
+name:                adventofcode2022
+version:             0.1.0.0
+github:              "sullyj3/adventofcode2022"
+license:             BSD3
+author:              "James Sully"
+maintainer:          "sullyj3@gmail.com"
+copyright:           "2022 James Sully"
+
+extra-source-files:
+- CHANGELOG.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+description:         Please see the README on GitHub at <https://github.com/sullyj3/adventofcode2022#readme>
+
+language: GHC2021
+
+default-extensions: 
+- UnicodeSyntax
+- LambdaCase
+- RecordWildCards
+- OverloadedStrings
+
+dependencies:
+- base >= 4.16 && < 5
+- optics-core
+- time
+- text
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: src
+
+executables:
+  adventofcode2022:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - adventofcode2022
