@@ -2,7 +2,6 @@ module Day15 where
 
 import Utils (tReadMaybe)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
 import Data.Text (Text)
 import Data.Maybe (fromJust)
 import AOC
