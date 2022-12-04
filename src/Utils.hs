@@ -64,3 +64,7 @@ selectIndices = go 0
           | otherwise = go (i+1) (idx:idxs) xs
         go _ _ [] = error "list doesn't contain all of the indices."
         
+
+count :: (a -> Bool) -> [a] -> Int
+count p = length . filter p
+
