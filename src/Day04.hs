@@ -1,4 +1,4 @@
-module Day04 where
+module Day04 (main) where
 
 import Utils (tRead, count, parsePair)
 

@@ -1,15 +1,10 @@
-
+{-# OPTIONS_GHC -Wno-missing-export-lists #-}
 module Utils where
 
 import qualified Data.Text as T
-import Data.Text (Text)
 import Numeric
 import Data.Char (digitToInt, intToDigit)
-import Data.Word (Word32)
-import Text.Read (readMaybe)
-import Data.Bifunctor
-import Control.Monad (join)
-import Relude.Unsafe (read)
+import qualified Relude.Unsafe as Unsafe
 
 
 both ∷ Bifunctor f ⇒ (a → b) → f a a → f b b
@@ -31,17 +26,19 @@ unreachable = error "Unreachable reached!"
 
 twoListToPair ∷ [a] → (a,a)
 twoListToPair [a,b] = (a,b)
+twoListToPair l = error $ "This list has " <> show (length l) <> " elements!"
+
 
 intList ∷ Text → Maybe [Int]
-intList = traverse (readMaybe . T.unpack) . T.lines
+intList = traverse (readMaybe . toString) . lines
 
 -- >>> parseBinary "1010" ∷ Maybe Word8
 -- Just 10
 -- >>> parseBinary "11111" ∷ Maybe Word8
 -- Just 31
-parseBinary ∷ (Eq a, Num a) ⇒ Text → Maybe a
+parseBinary ∷ Num a ⇒ Text → Maybe a
 parseBinary t =
-  case readInt 2 (`elem` binDigits) digitToInt (T.unpack t) of
+  case readInt 2 (`elem` binDigits) digitToInt (toString t) of
     [(n,_)] → Just n
     _ → Nothing
   where binDigits ∷ [Char]
@@ -50,23 +47,23 @@ parseBinary t =
 -- >>> binaryLines "101\n001"
 -- Just [5,1]
 binaryLines ∷ Text → Maybe [Word32]
-binaryLines = traverse parseBinary . T.lines
+binaryLines = traverse parseBinary . lines
 
 showBin ∷ (Integral a, Show a) ⇒ a → Text
-showBin n = T.pack $ showIntAtBase 2 intToDigit n ""
+showBin n = toText $ showIntAtBase 2 intToDigit n ""
 
 tShow ∷ Show a ⇒ a → Text
-tShow = T.pack . show
+tShow = toText @String . show
 
 tReadMaybe ∷ Read a ⇒ Text → Maybe a
-tReadMaybe = readMaybe . T.unpack
+tReadMaybe = readMaybe . toString
 
 tRead ∷ Read a ⇒ Text → a
-tRead = read . T.unpack
+tRead = Unsafe.read . toString
 
 showSolutions ∷ (Show a, Show b) ⇒ a → b → Text
 showSolutions p1 p2 =
-  T.unlines ["Part 1: " <> tShow p1, "Part 2: " <> tShow p2]
+  unlines ["Part 1: " <> tShow p1, "Part 2: " <> tShow p2]
 
 -- iteratively pare down a list of candidates, returning the final candidate,
 -- if it exists
