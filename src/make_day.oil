@@ -1,13 +1,13 @@
 if (len(ARGV) !== 1) {
 	echo "wrong number of arguments"
-	exit
+	exit 1
 }
 const day_number = ARGV[0]
 const day_str = "0$day_number" if day_number < 10 else "$day_number"
 const new_file = "Day$day_str.hs"
 if test -e $new_file {
 	echo "$new_file already exists! Aborting to avoid overwrite"
-	exit
+	exit 2
 }
 echo "Creating file $new_file from template..."
 sed "s/X/$day_str/g" DayX.hs > $new_file
