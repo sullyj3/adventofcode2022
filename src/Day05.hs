@@ -1,4 +1,4 @@
-module DayX where
+module Day05 where
 
 import Utils (tReadMaybe)
 import qualified Data.Text as T
@@ -17,6 +17,6 @@ solvePart2 = const ()
 
 
 main = do
-  input <- parse <$> T.readFile "inputs/dayX.txt"
+  input <- parse <$> T.readFile "inputs/05.txt"
   putStrLn $ "part 1: " <> show (solvePart1 input)
   putStrLn $ "part 2: " <> show (solvePart2 input)
