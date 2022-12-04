@@ -42,7 +42,8 @@ library
                     , optics-core ^>=0.4.1
                     , text
     other-modules: Utils, AOC
-    exposed-modules: Day02
+    exposed-modules: Day01
+                   , Day02
                    , Day03
                    , Day04
                    , Day05
