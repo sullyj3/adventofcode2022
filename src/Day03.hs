@@ -2,24 +2,16 @@ module Day03 where
 
 import Data.Char (isAsciiLower, isAsciiUpper)
 import Data.List (intersect, foldl1')
-
-
-solvePart1 ∷ String → Int
-solvePart1 = sum . map (priority . findDup) . lines
-  where
-    findDup s = head . uncurry intersect . splitAt (length s `div` 2) $ s
+import AOC
+import Data.Text (Text)
+import qualified Data.Text as T
+import Data.Function (on)
 
 
 chunksOf ∷ Int → [a] → [[a]]
 chunksOf n [] = []
 chunksOf n xs = chunk : chunksOf n rest 
   where (chunk, rest) = splitAt n xs
-
-
-solvePart2 ∷ String → Int
-solvePart2 = sum . map (priority . findCommon) . chunksOf 3 . lines
-  where
-    findCommon = head . foldl1' intersect
 
 
 priority ∷ Char → Int
@@ -30,7 +22,19 @@ priority c
 
 
 main ∷ IO ()
-main = do
-  contents ← readFile "inputs/day03.txt"
-  print $ solvePart1 contents
-  print $ solvePart2 contents
+main = aocMain "inputs/day03.txt" Solution {..}
+  where
+    parse ∷ Text → [Text]
+    parse = T.lines
+
+    solvePart1 ∷ [Text] → Int
+    solvePart1 = sum . map (priority . findDup)
+      where
+        findDup ∷ Text → Char
+        findDup s = head . uncurry (intersect `on` T.unpack) . T.splitAt (T.length s `div` 2) $ s
+
+    solvePart2 ∷ [Text] → Int
+    solvePart2 = sum . map (priority . findCommon) . chunksOf 3
+      where
+        findCommon :: [Text] -> Char
+        findCommon = head . foldl1' intersect . map T.unpack
