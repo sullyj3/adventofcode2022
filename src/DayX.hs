@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module DayX where
 
 import Utils (tReadMaybe)
@@ -5,18 +6,14 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Text (Text)
 import Data.Maybe (fromJust)
+import AOC
 
 
-parse = id
+solution = Solution {..}
+  where
+    parse = id
+    solvePart1 = const ()
+    solvePart2 = const ()
 
 
-solvePart1 = const ()
-
-
-solvePart2 = const ()
-
-
-main = do
-  input <- parse <$> T.readFile "inputs/dayX.txt"
-  putStrLn $ "part 1: " <> show (solvePart1 input)
-  putStrLn $ "part 2: " <> show (solvePart2 input)
+main = aocMain "inputs/X.txt" solution
