@@ -8,11 +8,8 @@ import Data.Maybe (fromJust)
 import AOC
 
 
-solution = Solution {..}
+main = aocMain "inputs/22.txt" Solution {..}
   where
     parse = id
     solvePart1 = const ()
     solvePart2 = const ()
-
-
-main = aocMain "inputs/22.txt" solution
