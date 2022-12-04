@@ -57,8 +57,8 @@ main = do
 
 currentDay ∷ IO ()
 currentDay = do
-  currentTime <- getCurrentTime
-  localTime <- utcToLocalZonedTime currentTime
+  currentTime ← getCurrentTime
+  localTime ← utcToLocalZonedTime currentTime
   let localTime' = zonedTimeToLocalTime localTime
       (year, month, day) = toGregorian $ localDay localTime'
   putStrLn $ "Today is " ++ show day ++ "/" ++ show month ++ "/" ++ show year
@@ -78,7 +78,7 @@ runDay ∷ Int → IO ()
 runDay day = do
   putStrLn "-------------------------------"
   putStrLn $ "Running day " ++ show day
-  result <- try (dayMains !! (day - 1)) ∷ IO (Either SomeException ())
+  result ← try (dayMains !! (day - 1)) ∷ IO (Either SomeException ())
   case result of
     Right () → pure ()
     Left err → putStrLn $ "Day " <> show day <> " failed with error: " <> show err

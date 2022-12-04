@@ -65,6 +65,6 @@ resultScore ∷ Result → Int
 resultScore theResult = 3 * fromEnum theResult
 
 main = do
-  contents <- readFile "inputs/day02.txt"
+  contents ← readFile "inputs/day02.txt"
   print $ solvePart1 contents
   print $ solvePart2 contents

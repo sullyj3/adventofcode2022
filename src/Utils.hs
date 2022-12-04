@@ -50,7 +50,7 @@ elimination eliminateFrom = loop
       [] → pure Nothing
       [x] → pure (Just x)
       remaining → do
-        remaining' <- eliminateFrom remaining
+        remaining' ← eliminateFrom remaining
         loop remaining'
 
 -- assume indices are sorted

@@ -31,6 +31,6 @@ priority c
 
 main ∷ IO ()
 main = do
-  contents <- readFile "inputs/day03.txt"
+  contents ← readFile "inputs/day03.txt"
   print $ solvePart1 contents
   print $ solvePart2 contents
