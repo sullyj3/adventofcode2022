@@ -20,7 +20,8 @@ rangeContains (a, b) (c, d) = a <= c && b >= d
 
 
 overlaps ∷ Range → Range → Bool
-overlaps (a,b) (c, d) = not $ (a<c && b<c) || (a>c && a>d)
+overlaps (a,b) (c, d) = (a<=c || a<=d) -- a not greater than second range, and
+                     && (c<=a || c<=b) -- c not greater than first range
 
 
 main = aocMain "inputs/day04.txt" Solution {..}
