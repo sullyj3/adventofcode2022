@@ -1,6 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE UnicodeSyntax #-}
-module Day05 where
+module Day14 where
 
 import Utils (tReadMaybe)
 import qualified Data.Text as T
@@ -17,4 +16,4 @@ solution = Solution {..}
     solvePart2 = const ()
 
 
-main = aocMain "inputs/05.txt" solution
+main = aocMain "inputs/14.txt" solution

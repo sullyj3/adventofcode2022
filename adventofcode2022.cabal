@@ -30,7 +30,9 @@ executable adventofcode2022
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:    base ^>=4.16.3.0
+                    , adventofcode2022
                     , optics-core ^>=0.4.1
+                    , time
     hs-source-dirs:   app
     default-language: Haskell2010
 
@@ -39,28 +41,28 @@ library
     build-depends:    base ^>=4.16.3.0
                     , optics-core ^>=0.4.1
                     , text
-    exposed-modules: Utils
-                   , Day02
+    other-modules: Utils, AOC
+    exposed-modules: Day02
                    , Day03
                    , Day04
                    , Day05
-                   -- , Day06
-                   -- , Day07
-                   -- , Day08
-                   -- , Day09
-                   -- , Day10
-                   -- , Day11
-                   -- , Day12
-                   -- , Day13
-                   -- , Day14
-                   -- , Day15
-                   -- , Day16
-                   -- , Day17
-                   -- , Day18
-                   -- , Day19
-                   -- , Day20
-                   -- , Day21
-                   -- , Day22
-                   -- , Day23
-                   -- , Day24
-                   -- , Day25
+                   , Day06
+                   , Day07
+                   , Day08
+                   , Day09
+                   , Day10
+                   , Day11
+                   , Day12
+                   , Day13
+                   , Day14
+                   , Day15
+                   , Day16
+                   , Day17
+                   , Day18
+                   , Day19
+                   , Day20
+                   , Day21
+                   , Day22
+                   , Day23
+                   , Day24
+                   , Day25
