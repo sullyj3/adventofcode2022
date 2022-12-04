@@ -7,6 +7,15 @@ import Numeric
 import Data.Char (digitToInt, intToDigit)
 import Data.Word (Word32)
 import Text.Read (readMaybe)
+import Data.Bifunctor
+import Control.Monad (join)
+
+
+both ∷ Bifunctor f ⇒ (a → b) → f a a → f b b
+both = join bimap
+
+twoListToPair ∷ [a] → (a,a)
+twoListToPair [a,b] = (a,b)
 
 intList ∷ Text → Maybe [Int]
 intList = traverse (readMaybe . T.unpack) . T.lines
@@ -36,6 +45,9 @@ tShow = T.pack . show
 
 tReadMaybe ∷ Read a ⇒ Text → Maybe a
 tReadMaybe = readMaybe . T.unpack
+
+tRead ∷ Read a ⇒ Text → a
+tRead = read . T.unpack
 
 showSolutions ∷ (Show a, Show b) ⇒ a → b → Text
 showSolutions p1 p2 =
