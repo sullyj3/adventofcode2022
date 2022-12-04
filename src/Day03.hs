@@ -1,5 +1,3 @@
-{-# LANGUAGE UnicodeSyntax #-}
-
 module Day03 where
 
 import Data.Char (isAsciiLower, isAsciiUpper)

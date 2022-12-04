@@ -1,5 +1,3 @@
-{-# LANGUAGE UnicodeSyntax #-}
-{-# LANGUAGE LambdaCase #-}
 module Main where
 
 import qualified Day01

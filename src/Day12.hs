@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 module Day12 where
 
 import Utils (tReadMaybe)

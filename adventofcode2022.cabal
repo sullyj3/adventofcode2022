@@ -21,10 +21,14 @@ maintainer:         sullyj3@gmail.com
 -- category:
 extra-source-files: CHANGELOG.md
 
-default-language: GHC2021
-
 executable adventofcode2022
     main-is:          Main.hs
+
+    default-language: GHC2021
+    default-extensions: UnicodeSyntax
+                      , LambdaCase
+                      , RecordWildCards
+                      , OverloadedStrings
 
     -- Modules included in this executable, other than Main.
     -- other-modules:
@@ -38,6 +42,12 @@ executable adventofcode2022
     hs-source-dirs:   app
 
 library
+    default-language: GHC2021
+    default-extensions: UnicodeSyntax
+                      , LambdaCase
+                      , RecordWildCards
+                      , OverloadedStrings
+
     hs-source-dirs:   src
     build-depends:    base ^>=4.16.3.0
                     , optics-core ^>=0.4.1

@@ -1,6 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE UnicodeSyntax #-}
-{-# LANGUAGE RecordWildCards #-}
 module Day04 where
 
 import Utils (tReadMaybe, count)
