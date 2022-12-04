@@ -14,6 +14,11 @@ import Control.Monad (join)
 both ∷ Bifunctor f ⇒ (a → b) → f a a → f b b
 both = join bimap
 
+
+parsePair ∷ (Text → a) → Text → Text → (a, a)
+parsePair parseElems sep = both parseElems . twoListToPair . T.splitOn sep
+
+
 twoListToPair ∷ [a] → (a,a)
 twoListToPair [a,b] = (a,b)
 

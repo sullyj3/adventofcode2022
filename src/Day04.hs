@@ -1,6 +1,6 @@
 module Day04 where
 
-import Utils (tRead, count, both, twoListToPair)
+import Utils (tRead, count, parsePair)
 import qualified Data.Text as T
 import Data.Text (Text)
 
@@ -10,10 +10,10 @@ type ElfPair = (Range, Range)
 type Range = (Int, Int)
 
 parseRange ∷ Text → Range
-parseRange = both tRead . twoListToPair . T.splitOn "-" 
+parseRange = parsePair tRead "-"
 
 parseElfPair ∷ Text → ElfPair
-parseElfPair = both parseRange . twoListToPair . T.splitOn ","
+parseElfPair = parsePair parseRange ","
 
 oneContainsOther ∷ Range → Range → Bool
 oneContainsOther a b = (a `rangeContains` b) || (b `rangeContains` a)
