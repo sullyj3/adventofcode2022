@@ -12,13 +12,11 @@ chunksOf _ [] = []
 chunksOf n xs = chunk : chunksOf n rest
   where (chunk, rest) = splitAt n xs
 
-
 priority ∷ Char → Int
 priority c
   | isAsciiLower c = fromEnum c - fromEnum 'a' + 1
   | isAsciiUpper c = fromEnum c - fromEnum 'A' + 27
   | otherwise = unreachable
-
 
 main ∷ IO ()
 main = aocMain "inputs/day03.txt" Solution {..}
@@ -26,14 +24,20 @@ main = aocMain "inputs/day03.txt" Solution {..}
     parse ∷ Text → [Text]
     parse = lines
 
+    totalPriority ∷ [Char] → Int
+    totalPriority = sum . map priority
+
     solvePart1 ∷ [Text] → Int
-    solvePart1 = sum . map (priority . findDup)
+    solvePart1 = totalPriority . map findDup
       where
         findDup ∷ Text → Char
-        findDup s = Unsafe.head . uncurry (intersect `on` toString) . T.splitAt (T.length s `div` 2) $ s
+        findDup = Unsafe.head . uncurry (intersect `on` toString) . halves
+
+        halves s = T.splitAt (T.length s `div` 2) s
 
     solvePart2 ∷ [Text] → Int
-    solvePart2 = sum . map (priority . findCommon) . chunksOf 3
+    solvePart2 = totalPriority . map findCommon . chunksOf 3
       where
         findCommon ∷ [Text] → Char
         findCommon = Unsafe.head . foldl1' intersect . map toString
+
