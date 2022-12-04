@@ -9,6 +9,7 @@ import Data.Word (Word32)
 import Text.Read (readMaybe)
 import Data.Bifunctor
 import Control.Monad (join)
+import Relude.Unsafe (read)
 
 
 both ∷ Bifunctor f ⇒ (a → b) → f a a → f b b
@@ -17,6 +18,15 @@ both = join bimap
 
 parsePair ∷ (Text → a) → Text → Text → (a, a)
 parsePair parseElems sep = both parseElems . twoListToPair . T.splitOn sep
+
+
+parsePair2 :: (Text -> b) -> (Text -> d) -> Text -> Text -> (b, d)
+parsePair2 parseLeft parseRight sep = 
+  bimap parseLeft parseRight . twoListToPair . T.splitOn sep
+
+
+unreachable :: a
+unreachable = error "Unreachable reached!"
 
 
 twoListToPair ∷ [a] → (a,a)

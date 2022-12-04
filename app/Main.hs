@@ -1,4 +1,4 @@
-module Main where
+module Main (main) where
 
 import qualified Day01
 import qualified Day02
@@ -29,11 +29,9 @@ import qualified Day25
 import Control.Exception
 import Data.Time.Clock
 import Data.Time (toGregorian, localDay, zonedTimeToLocalTime)
-import System.Environment (getArgs)
-import Data.Foldable (traverse_)
-import Data.Time.LocalTime (utcToLocalTime)
 import Data.Time (utcToLocalZonedTime)
 
+import qualified Relude.Unsafe as Unsafe
 
 data Invocation = CurrentDay | GivenDay Int | AllDays
 
@@ -42,7 +40,7 @@ parseArgs ∷ [String] → Invocation
 parseArgs = \case
   [] → CurrentDay
   ["all"] → AllDays
-  [n] → GivenDay $ read n
+  [n] → GivenDay $ Unsafe.read n
   _ → error "too many arguments!"
 
 
@@ -79,12 +77,13 @@ runDay ∷ Int → IO ()
 runDay day = do
   putStrLn "-------------------------------"
   putStrLn $ "Running day " ++ show day
-  result ← try (dayMains !! (day - 1)) ∷ IO (Either SomeException ())
+  result ← try (dayMains Unsafe.!! (day - 1)) ∷ IO (Either SomeException ())
   case result of
     Right () → pure ()
     Left err → putStrLn $ "Day " <> show day <> " failed with error: " <> show err
 
 
+dayMains :: [IO ()]
 dayMains = 
   [ Day01.main
   , Day02.main

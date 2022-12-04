@@ -24,10 +24,18 @@ default-extensions:
 - OverloadedStrings
 
 dependencies:
-- base >= 4.16 && < 5
-- optics-core
-- time
-- text
+  - name: base
+    version: ">= 4.16 && < 5"
+    mixin: 
+      - hiding (Prelude)
+  - name: relude
+    version: ">= 1.1 && < 2"
+    mixin: 
+      - hiding (Relude)
+      - (Relude as Prelude)
+  - optics-core
+  - time
+  - text
 
 ghc-options:
 - -Wall

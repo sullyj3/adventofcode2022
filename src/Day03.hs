@@ -6,7 +6,7 @@ import AOC
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Function (on)
-
+import qualified Relude.Unsafe as Unsafe
 
 chunksOf ∷ Int → [a] → [[a]]
 chunksOf n [] = []
@@ -31,10 +31,10 @@ main = aocMain "inputs/day03.txt" Solution {..}
     solvePart1 = sum . map (priority . findDup)
       where
         findDup ∷ Text → Char
-        findDup s = head . uncurry (intersect `on` T.unpack) . T.splitAt (T.length s `div` 2) $ s
+        findDup s = Unsafe.head . uncurry (intersect `on` T.unpack) . T.splitAt (T.length s `div` 2) $ s
 
     solvePart2 ∷ [Text] → Int
     solvePart2 = sum . map (priority . findCommon) . chunksOf 3
       where
         findCommon :: [Text] -> Char
-        findCommon = head . foldl1' intersect . map T.unpack
+        findCommon = Unsafe.head . foldl1' intersect . map T.unpack

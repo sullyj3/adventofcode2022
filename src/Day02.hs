@@ -1,4 +1,7 @@
 module Day02 where
+import qualified Data.Text as T
+import Utils (parsePair, unreachable, parsePair2)
+import qualified Data.Text.IO as T
 
 class (Eq a, Enum a, Bounded a) ⇒ Cyclic a where
   succCyclic ∷ a → a
@@ -17,29 +20,35 @@ data Result = Loss | Draw | Win
 
 instance Cyclic RPS
 
+parseResult ∷ (Eq a, IsString a) => a → Result
 parseResult c = case c of
-  'X' → Loss
-  'Y' → Draw
-  'Z' → Win
+  "X" → Loss
+  "Y" → Draw
+  "Z" → Win
+  _ → unreachable
 
+parseRPS ∷ (Eq a, IsString a) => a → RPS
 parseRPS c = case c of
-  'A' → Rock
-  'B' → Paper
-  'C' → Scissors
-  'X' → Rock
-  'Y' → Paper
-  'Z' → Scissors
+  "A" → Rock
+  "B" → Paper
+  "C" → Scissors
+  "X" → Rock
+  "Y" → Paper
+  "Z" → Scissors
+  _ → unreachable
 
-solvePart1 ∷ String → Int
+solvePart1 ∷ Text → Int
 solvePart1 = sum . map (uncurry scorePart1) . parsePart1
   where
-    parsePart1Line [them, _, us] = (parseRPS them, parseRPS us)
+    parsePart1Line = parsePair parseRPS " "
+
+    parsePart1 ∷ Text → [(RPS, RPS)]
     parsePart1 = map parsePart1Line . lines
     scorePart1 them us = resultScore (result us them) + shapeScore us
     
 solvePart2 = sum . map (uncurry scorePart2) . parsePart2
   where
-    parsePart2Line [them, _, desiredResult] = (parseRPS them, parseResult desiredResult)
+    parsePart2Line = parsePair2 parseRPS parseResult " "
     parsePart2 = map parsePart2Line . lines
 
     scorePart2 them desiredResult = shapeScore ourPlay + resultScore desiredResult
@@ -64,7 +73,8 @@ shapeScore us = fromEnum us + 1
 resultScore ∷ Result → Int
 resultScore theResult = 3 * fromEnum theResult
 
+main :: IO ()
 main = do
-  contents ← readFile "inputs/day02.txt"
+  contents ← T.readFile "inputs/day02.txt"
   print $ solvePart1 contents
   print $ solvePart2 contents
