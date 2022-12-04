@@ -3,7 +3,7 @@ if (len(ARGV) !== 1) {
 	exit 1
 }
 const day_number = ARGV[0]
-const day_str = "0$day_number" if day_number < 10 else "$day_number"
+const day_str = $(printf "%-0*d" 2 $day_number)
 const new_file = "Day$day_str.hs"
 if test -e $new_file {
 	echo "$new_file already exists! Aborting to avoid overwrite"
