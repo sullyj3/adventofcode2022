@@ -1,6 +1,6 @@
 module Day05 where
 
-import Utils (tReadMaybe)
+import Utils (tRead)
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.Maybe (fromJust)

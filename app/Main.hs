@@ -52,6 +52,7 @@ main = do
   case invocation of
     CurrentDay → currentDay
     GivenDay n → runDay n
+    -- TODO only run days that have happened yet
     AllDays → traverse_ runDay [1..25]
 
 
