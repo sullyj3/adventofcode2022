@@ -30,9 +30,11 @@ import qualified Day25
 
 import Control.Exception
 import Data.Time.Clock
-import Data.Time (toGregorian)
+import Data.Time (toGregorian, localDay, zonedTimeToLocalTime)
 import System.Environment (getArgs)
 import Data.Foldable (traverse_)
+import Data.Time.LocalTime (utcToLocalTime)
+import Data.Time (utcToLocalZonedTime)
 
 
 data Invocation = CurrentDay | GivenDay Int | AllDays
@@ -58,7 +60,9 @@ main = do
 currentDay ∷ IO ()
 currentDay = do
   currentTime <- getCurrentTime
-  let (year, month, day) = toGregorian (utctDay currentTime)
+  localTime <- utcToLocalZonedTime currentTime
+  let localTime' = zonedTimeToLocalTime localTime
+      (year, month, day) = toGregorian $ localDay localTime'
   putStrLn $ "Today is " ++ show day ++ "/" ++ show month ++ "/" ++ show year
   handleToday day month
   where
@@ -66,7 +70,7 @@ currentDay = do
 
     handleToday day month
       | isAdvent day month = do
-        putStrLn $ "It's day " ++ show day ++ " of advent!"
+        putStrLn $ "It's day " ++ show day ++ " of Advent!"
         runDay day
       | otherwise = putStrLn "It's not currently Advent. You'll need to specify a day to run."
 
