@@ -1,7 +1,6 @@
 module Day04 where
 
 import Utils (tRead, count, parsePair)
-import qualified Data.Text as T
 
 import AOC
 
@@ -23,10 +22,11 @@ overlaps (a,b) (c, d) = (a<=c || a<=d) -- a not greater than second range, and
                      && (c<=a || c<=b) -- c not greater than first range
 
 
+main :: IO ()
 main = aocMain "inputs/day04.txt" Solution {..}
   where
     parse ∷ Text → [ElfPair]
-    parse = map (parsePair (parsePair tRead "-") ",") . T.lines
+    parse = map (parsePair (parsePair tRead "-") ",") . lines
 
     solvePart1 ∷ [ElfPair] → Int
     solvePart1 = count $ uncurry oneContainsOther

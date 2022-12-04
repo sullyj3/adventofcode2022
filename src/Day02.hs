@@ -1,5 +1,4 @@
-module Day02 where
-import qualified Data.Text as T
+module Day02 (main) where
 import Utils (parsePair, unreachable, parsePair2)
 import qualified Data.Text.IO as T
 
@@ -46,6 +45,7 @@ solvePart1 = sum . map (uncurry scorePart1) . parsePart1
     parsePart1 = map parsePart1Line . lines
     scorePart1 them us = resultScore (result us them) + shapeScore us
     
+solvePart2 :: Text -> Int
 solvePart2 = sum . map (uncurry scorePart2) . parsePart2
   where
     parsePart2Line = parsePair2 parseRPS parseResult " "
