@@ -1,3 +1,5 @@
+{-# LANGUAGE UnicodeSyntax #-}
+{-# LANGUAGE LambdaCase #-}
 module Main where
 
 import qualified Day01
@@ -26,21 +28,59 @@ import qualified Day23
 import qualified Day24
 import qualified Day25
 
+import Control.Exception
 import Data.Time.Clock
 import Data.Time (toGregorian)
+import System.Environment (getArgs)
+import Data.Foldable (traverse_)
 
 
-main :: IO ()
+data Invocation = CurrentDay | GivenDay Int | AllDays
+
+
+parseArgs ∷ [String] → Invocation
+parseArgs = \case
+  [] → CurrentDay
+  ["all"] → AllDays
+  [n] → GivenDay $ read n
+  _ → error "too many arguments!"
+
+
+main ∷ IO ()
 main = do 
-  currentTime <- getCurrentTime
-  let (_, month, day) = toGregorian (utctDay currentTime)
-  if month == 12 && day <= 25 then
-    putStrLn $ "It's currently day " ++ show day
-  else 
-    putStrLn "It's not currently advent. You'll need to specify a day to run"
+  invocation ← parseArgs <$> getArgs
+  case invocation of
+    CurrentDay → currentDay
+    GivenDay n → runDay n
+    AllDays → traverse_ runDay [1..25]
 
+
+currentDay ∷ IO ()
+currentDay = do
+  currentTime <- getCurrentTime
+  let (year, month, day) = toGregorian (utctDay currentTime)
+  putStrLn $ "Today is " ++ show day ++ "/" ++ show month ++ "/" ++ show year
+  handleToday day month
+  where
+    isAdvent day month = month == 12 && day <= 25
+
+    handleToday day month
+      | isAdvent day month = do
+        putStrLn $ "It's day " ++ show day ++ " of advent!"
+        runDay day
+      | otherwise = putStrLn "It's not currently Advent. You'll need to specify a day to run."
+
+
+-- Handles errors without crashing
+runDay ∷ Int → IO ()
+runDay day = do
+  putStrLn "-------------------------------"
   putStrLn $ "Running day " ++ show day
-  dayMains !! (day - 1)
+  result <- try (dayMains !! (day - 1)) :: IO (Either SomeException ())
+  case result of
+    Right () -> pure ()
+    Left err -> putStrLn $ "Day " <> show day <> " failed with error: " <> show err
+
 
 dayMains = 
   [ Day01.main
