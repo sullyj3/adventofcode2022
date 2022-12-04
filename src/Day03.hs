@@ -1,15 +1,15 @@
 module Day03 (main) where
 
-import Data.Char (isAsciiLower, isAsciiUpper)
-import Data.List (intersect, foldl1')
-import AOC
-import qualified Data.Text as T
+import           AOC
+import           Data.Char     (isAsciiLower, isAsciiUpper)
+import           Data.List     (foldl1', intersect)
+import qualified Data.Text     as T
 import qualified Relude.Unsafe as Unsafe
-import Utils (unreachable)
+import           Utils         (unreachable)
 
 chunksOf ∷ Int → [a] → [[a]]
 chunksOf _ [] = []
-chunksOf n xs = chunk : chunksOf n rest 
+chunksOf n xs = chunk : chunksOf n rest
   where (chunk, rest) = splitAt n xs
 
 
@@ -35,5 +35,5 @@ main = aocMain "inputs/day03.txt" Solution {..}
     solvePart2 ∷ [Text] → Int
     solvePart2 = sum . map (priority . findCommon) . chunksOf 3
       where
-        findCommon :: [Text] -> Char
+        findCommon ∷ [Text] → Char
         findCommon = Unsafe.head . foldl1' intersect . map toString

@@ -1,6 +1,6 @@
 module Day02 (main) where
-import Utils (parsePair, unreachable, parsePair2)
 import qualified Data.Text.IO as T
+import           Utils        (parsePair, parsePair2, unreachable)
 
 class (Eq a, Enum a, Bounded a) ⇒ Cyclic a where
   succCyclic ∷ a → a
@@ -19,14 +19,14 @@ data Result = Loss | Draw | Win
 
 instance Cyclic RPS
 
-parseResult ∷ (Eq a, IsString a) => a → Result
+parseResult ∷ (Eq a, IsString a) ⇒ a → Result
 parseResult c = case c of
   "X" → Loss
   "Y" → Draw
   "Z" → Win
-  _ → unreachable
+  _   → unreachable
 
-parseRPS ∷ (Eq a, IsString a) => a → RPS
+parseRPS ∷ (Eq a, IsString a) ⇒ a → RPS
 parseRPS c = case c of
   "A" → Rock
   "B" → Paper
@@ -34,7 +34,7 @@ parseRPS c = case c of
   "X" → Rock
   "Y" → Paper
   "Z" → Scissors
-  _ → unreachable
+  _   → unreachable
 
 solvePart1 ∷ Text → Int
 solvePart1 = sum . map (uncurry scorePart1) . parsePart1
@@ -44,15 +44,15 @@ solvePart1 = sum . map (uncurry scorePart1) . parsePart1
     parsePart1 ∷ Text → [(RPS, RPS)]
     parsePart1 = map parsePart1Line . lines
     scorePart1 them us = resultScore (result us them) + shapeScore us
-    
-solvePart2 :: Text -> Int
+
+solvePart2 ∷ Text → Int
 solvePart2 = sum . map (uncurry scorePart2) . parsePart2
   where
     parsePart2Line = parsePair2 parseRPS parseResult " "
     parsePart2 = map parsePart2Line . lines
 
     scorePart2 them desiredResult = shapeScore ourPlay + resultScore desiredResult
-      where   
+      where
         ourPlay = reverseEngineerPlay them desiredResult
 
 reverseEngineerPlay ∷ RPS → Result → RPS
@@ -61,9 +61,9 @@ reverseEngineerPlay them desiredResult = case desiredResult of
   -- the data type is defined in order Rock, Paper, Scissors
   -- if we consider the cycle of those constructors, each one
   -- beats its predecessor
-  Win → succCyclic them
+  Win  → succCyclic them
   Loss → predCyclic them
-  
+
 result ∷ RPS → RPS → Result
 result us them = toEnum $ (fromEnum us - fromEnum them + 1) `mod` 3
 
@@ -73,7 +73,7 @@ shapeScore us = fromEnum us + 1
 resultScore ∷ Result → Int
 resultScore theResult = 3 * fromEnum theResult
 
-main :: IO ()
+main ∷ IO ()
 main = do
   contents ← T.readFile "inputs/day02.txt"
   print $ solvePart1 contents

@@ -1,8 +1,8 @@
 module Day04 (main) where
 
-import Utils (tRead, count, parsePair)
+import           Utils (count, parsePair, tRead)
 
-import AOC
+import           AOC
 
 
 type ElfPair = (Range, Range)
@@ -22,7 +22,7 @@ overlaps (a,b) (c, d) = (a<=c || a<=d) -- a not greater than second range, and
                      && (c<=a || c<=b) -- c not greater than first range
 
 
-main :: IO ()
+main ∷ IO ()
 main = aocMain "inputs/day04.txt" Solution {..}
   where
     parse ∷ Text → [ElfPair]

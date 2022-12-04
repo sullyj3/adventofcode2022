@@ -1,9 +1,9 @@
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 module Utils where
 
-import qualified Data.Text as T
-import Numeric
-import Data.Char (digitToInt, intToDigit)
+import           Data.Char     (digitToInt, intToDigit)
+import qualified Data.Text     as T
+import           Numeric
 import qualified Relude.Unsafe as Unsafe
 
 
@@ -15,12 +15,12 @@ parsePair ∷ (Text → a) → Text → Text → (a, a)
 parsePair parseElems sep = both parseElems . twoListToPair . T.splitOn sep
 
 
-parsePair2 :: (Text -> b) -> (Text -> d) -> Text -> Text -> (b, d)
-parsePair2 parseLeft parseRight sep = 
+parsePair2 ∷ (Text → b) → (Text → d) → Text → Text → (b, d)
+parsePair2 parseLeft parseRight sep =
   bimap parseLeft parseRight . twoListToPair . T.splitOn sep
 
 
-unreachable :: a
+unreachable ∷ a
 unreachable = error "Unreachable reached!"
 
 
@@ -40,7 +40,7 @@ parseBinary ∷ Num a ⇒ Text → Maybe a
 parseBinary t =
   case readInt 2 (`elem` binDigits) digitToInt (toString t) of
     [(n,_)] → Just n
-    _ → Nothing
+    _       → Nothing
   where binDigits ∷ [Char]
         binDigits = ['0', '1']
 
@@ -85,7 +85,7 @@ selectIndices = go 0
           | i == idx  = x : go (i+1) idxs xs
           | otherwise = go (i+1) (idx:idxs) xs
         go _ _ [] = error "list doesn't contain all of the indices."
-        
+
 
 count ∷ (a → Bool) → [a] → Int
 count p = length . filter p

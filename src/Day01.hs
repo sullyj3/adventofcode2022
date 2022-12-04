@@ -1,10 +1,10 @@
 module Day01 where
 
-import Utils (tRead)
-import qualified Data.Text as T
-import Data.Text (Text)
-import Data.Maybe (fromJust)
-import AOC
+import           AOC
+import           Data.Maybe (fromJust)
+import           Data.Text  (Text)
+import qualified Data.Text  as T
+import           Utils      (tRead)
 
 
 solution = Solution {..}

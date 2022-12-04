@@ -1,11 +1,11 @@
-module Day16 (main) where
+module Day16 where
 
-import Utils (tRead)
+import           AOC
 import qualified Data.Text as T
-import AOC
+import           Utils     (tRead)
 
 
-main :: IO ()
+main ∷ IO ()
 main = aocMain "inputs/16.txt" Solution {..}
   where
     parse = id
