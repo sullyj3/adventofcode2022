@@ -78,10 +78,10 @@ runDay ∷ Int → IO ()
 runDay day = do
   putStrLn "-------------------------------"
   putStrLn $ "Running day " ++ show day
-  result <- try (dayMains !! (day - 1)) :: IO (Either SomeException ())
+  result <- try (dayMains !! (day - 1)) ∷ IO (Either SomeException ())
   case result of
-    Right () -> pure ()
-    Left err -> putStrLn $ "Day " <> show day <> " failed with error: " <> show err
+    Right () → pure ()
+    Left err → putStrLn $ "Day " <> show day <> " failed with error: " <> show err
 
 
 dayMains = 
