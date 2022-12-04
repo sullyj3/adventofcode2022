@@ -20,7 +20,7 @@ Priority ← {
 # then sum the priority of each line
 SolvePart1 ← +´ {Priority ⊑ (∊/⊣)˝ 2‿∘⥊𝕩}¨
 
-ChunksOf ← {((≠𝕩) ↑ 𝕨/↕(≠𝕩)) ⊔ 𝕩}
+ChunksOf ← {((≠𝕩)↑𝕨/↕≠𝕩) ⊔ 𝕩}
 SolvePart2 ← {+´ (Priority ∘ ⊑ (∊/⊣)´)¨ 3 ChunksOf 𝕩}
 
 SolvePart1 exampleParsed
