@@ -1,16 +1,12 @@
 module Day03 (main) where
 
 import           AOC
-import           Data.Char     (isAsciiLower, isAsciiUpper)
-import           Data.List     (foldl1', intersect)
-import qualified Data.Text     as T
-import qualified Relude.Unsafe as Unsafe
-import           Utils         (unreachable)
-
-chunksOf ∷ Int → [a] → [[a]]
-chunksOf _ [] = []
-chunksOf n xs = chunk : chunksOf n rest
-  where (chunk, rest) = splitAt n xs
+import           Data.Char       (isAsciiLower, isAsciiUpper)
+import           Data.List       (foldl1', intersect)
+import           Data.List.Extra (chunksOf)
+import qualified Data.Text       as T
+import qualified Relude.Unsafe   as Unsafe
+import           Utils           (unreachable)
 
 priority ∷ Char → Int
 priority c
