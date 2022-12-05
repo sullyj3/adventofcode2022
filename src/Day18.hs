@@ -1,13 +1,16 @@
-module Day18 where
+module Day18 (main) where
 
 import           AOC
-import qualified Data.Text as T
-import           Utils     (tRead)
-
+import           AOC.Parse
+import           AOC.Parsers
+import qualified Data.Text   as T
+import           Utils       (tRead)
 
 main ∷ IO ()
 main = aocMain "inputs/18.txt" Solution {..}
   where
-    parse = id
+    parse = unsafeParse $ undefined
+
     solvePart1 = const ()
+
     solvePart2 = const ()
