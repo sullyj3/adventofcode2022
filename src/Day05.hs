@@ -4,7 +4,7 @@ module Day05 where
 import           AOC
 import           AOC.Parse      hiding (State)
 import           Control.Arrow  ((***))
-import           Data.Char      (isDigit, isSpace, isUpper)
+import           Data.Char      (isDigit, isUpper)
 import qualified Data.Text      as T
 import           Optics.At.Core (ix)
 import           Prelude        hiding (some)
@@ -17,22 +17,18 @@ import Optics.State.Operators ((%=))
 -- Parsing --
 -------------
 
-splitCratesInstructions ∷ [Text] → ([Text], [Text])
-splitCratesInstructions input = (crates, instructions)
-  where
-    (crates, _numRow : _blankLine : instructions) = break isNumRow input
-    -- phoenix combinator!
-    isNumRow = T.all $ liftA2 (||) isSpace isDigit
+splitCratesInstructions ∷ Text → (Text, Text)
+splitCratesInstructions = second (T.drop 2) . T.breakOn "\n\n"
 
 type CrateStack = [Char]
 
--- given lines of input, return a list of crate columns
-parseCrates ∷ [Text] → [CrateStack]
+-- return a list of crate columns
+parseCrates ∷ Text → [CrateStack]
 parseCrates = 
-    map (filter isUpper)
+    map (toString . T.filter isUpper)
   . selectIndices [1,5..]
-  . transpose
-  . map toString
+  . T.transpose
+  . lines
 
 data Instruction = Instruction { insCount ∷ Int
                                , insFrom  ∷ Int
@@ -47,11 +43,11 @@ parseInstruction = nonDigits *> do
   where
     nonDigits = some (satisfy $ not . isDigit)
 
-parseInstructions ∷ [Text] → [Instruction]
-parseInstructions = map (unsafeParse parseInstruction)
+parseInstructions ∷ Text → [Instruction]
+parseInstructions = map (unsafeParse parseInstruction) . lines
 
 parseDay05 ∷ Text → ([CrateStack], [Instruction])
-parseDay05 = (parseCrates *** parseInstructions) . splitCratesInstructions . lines
+parseDay05 = (parseCrates *** parseInstructions) . splitCratesInstructions
 
 ---------------
 -- Solutions --
