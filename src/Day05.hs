@@ -2,17 +2,17 @@
 module Day05 where
 
 import           AOC
-import           AOC.Parse      hiding (State)
-import           Control.Arrow  ((***))
-import           Data.Char      (isDigit, isUpper)
-import qualified Data.Text      as T
-import           Optics.At.Core (ix)
-import           Prelude        hiding (some)
-import qualified Relude.Unsafe  as Unsafe
-import           Relude.Unsafe  ((!!))
-import           Utils          (selectIndices)
-import Optics.State.Operators ((%=))
-import AOC.Parsers (linesOf, numLine)
+import           AOC.Parse              hiding (State)
+import           AOC.Parsers            (linesOf, numLine)
+import           Control.Arrow          ((***))
+import           Data.Char              (isDigit, isUpper)
+import qualified Data.Text              as T
+import           Optics.At.Core         (ix)
+import           Optics.State.Operators ((%=))
+import           Prelude                hiding (some)
+import qualified Relude.Unsafe          as Unsafe
+import           Relude.Unsafe          ((!!))
+import           Utils                  (selectIndices)
 
 -------------
 -- Parsing --
@@ -25,7 +25,7 @@ type CrateStack = [Char]
 
 -- return a list of crate columns
 parseCrates ∷ Text → [CrateStack]
-parseCrates = 
+parseCrates =
     map (toString . T.filter isUpper)
   . selectIndices [1,5..]
   . T.transpose
@@ -59,9 +59,9 @@ performInstruction pickUp (Instruction {..}) = do
   ix insTo   %= (chosen ++)
 
 finalTopCrates
-  ∷ (CrateStack -> CrateStack) → ([CrateStack], [Instruction]) → String
+  ∷ (CrateStack → CrateStack) → ([CrateStack], [Instruction]) → String
 finalTopCrates pickup (initialStacks, instructions) = map Unsafe.head finalStacks
-  where 
+  where
     finalStacks = execState performInstructions initialStacks
     performInstructions = traverse (performInstruction pickup) instructions
 
