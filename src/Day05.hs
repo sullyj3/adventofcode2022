@@ -7,7 +7,7 @@ import           Control.Arrow          ((***))
 import           Data.Char              (isUpper)
 import qualified Data.Text              as T
 import           Optics.At.Core         (ix)
-import           Optics.State.Operators ((%=))
+import           Optics.State.Operators ((%=), (.=))
 import           Prelude                hiding (some)
 import qualified Relude.Unsafe          as Unsafe
 import           Relude.Unsafe          ((!!))
@@ -51,9 +51,9 @@ parseDay05 = (parseCrates *** parseInstructions) . splitCratesInstructions
 
 performInstruction ∷ (CrateStack → CrateStack) → Instruction → State [CrateStack] ()
 performInstruction possiblyReverse instruct = do
-  movedCrates <- possiblyReverse . take instruct.count . (!! instruct.from) <$> get
-  ix instruct.from %= drop instruct.count
-  ix instruct.to   %= (movedCrates ++)
+  (movedCrates, remaining) <- splitAt instruct.count . (!! instruct.from) <$> get
+  ix instruct.from .= remaining
+  ix instruct.to   %= (possiblyReverse movedCrates ++)
 
 finalTopCrates
   ∷ (CrateStack → CrateStack) → ([CrateStack], [Instruction]) → String
