@@ -73,7 +73,9 @@ performInstruction pickUp (Instruction {..}) = do
 finalTopCrates
   ∷ (CrateStack -> CrateStack) → ([CrateStack], [Instruction]) → String
 finalTopCrates pickup (initialStacks, instructions) = map Unsafe.head finalStacks
-  where finalStacks = flip execState initialStacks $ traverse (performInstruction pickup) instructions
+  where 
+    finalStacks = execState performInstructions initialStacks
+    performInstructions = traverse (performInstruction pickup) instructions
 
 main ∷ IO ()
 main = aocMain "inputs/05.txt" Solution {..}
