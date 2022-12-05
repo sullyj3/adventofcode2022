@@ -36,14 +36,11 @@ data Instruction = Instruction { insCount ∷ Int
                                , insTo    ∷ Int }
   deriving Show
 
-parseInstruction ∷ Parser Instruction
-parseInstruction = do
-  [a, b, c] <- numLine
-  -- we subtract 1 from all indices so that we can use 0 based indexing with !!
-  pure $ Instruction { insCount=a, insFrom=b-1, insTo=c-1 }
-
 parseInstructions ∷ Text → [Instruction]
-parseInstructions = unsafeParse $ linesOf parseInstruction
+parseInstructions = unsafeParse $ linesOf (toInstruction <$> numLine)
+  where
+    toInstruction [a,b,c] = Instruction { insCount=a, insFrom=b-1, insTo=c-1 }
+    toInstruction _ = error "line does not contain exactly 3 numbers"
 
 parseDay05 ∷ Text → ([CrateStack], [Instruction])
 parseDay05 = (parseCrates *** parseInstructions) . splitCratesInstructions

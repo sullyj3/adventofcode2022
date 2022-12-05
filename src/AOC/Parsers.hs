@@ -26,7 +26,7 @@ linesOf p = p `sepEndBy` newline
 
 -- treats all non-digit characters as separators
 numLine :: Num a => Parser [a]
-numLine = many nonDigit *> decimal `sepEndBy` some nonDigit
+numLine = many nonDigit *> decimal `sepEndBy1` some nonDigit
   where
     nonDigit = satisfy $ \c -> not (isDigit c) && c /= '\n'
 
