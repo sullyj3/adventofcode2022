@@ -2,14 +2,14 @@
 module Day05 where
 
 import           AOC
-import           AOC.Parse
-import           Control.Arrow        ((***))
-import           Data.Char            (isDigit, isSpace)
-import qualified Data.Text            as T
-import           Prelude              hiding (some)
-import qualified Relude.Unsafe        as Unsafe
-import           Relude.Unsafe        ((!!))
-import           Utils                (selectIndices)
+import           AOC.Parse     hiding (State)
+import           Control.Arrow ((***))
+import           Data.Char     (isDigit, isSpace)
+import qualified Data.Text     as T
+import           Prelude       hiding (some)
+import qualified Relude.Unsafe as Unsafe
+import           Relude.Unsafe ((!!))
+import           Utils         (selectIndices)
 
 -------------
 -- Parsing --
@@ -66,22 +66,16 @@ modifyNth _ _ []     = []
 modifyNth 0 f (x:xs) = f x : xs
 modifyNth n f (x:xs) = x : modifyNth (n-1) f xs
 
-performInstruction ∷ (CrateStack → CrateStack)
-                   → Instruction
-                   → [CrateStack]
-                   → [CrateStack]
-performInstruction pickUp (Instruction {..}) stacks =
-    (insFrom `modifyNth` drop insCount)
-  . (insTo `modifyNth` (chosen ++))
-  $ stacks
-  where
-    chosen = pickUp $ take insCount (stacks !! insFrom)
+performInstruction ∷ (CrateStack → CrateStack) → Instruction → State [CrateStack] ()
+performInstruction pickUp (Instruction {..}) = do
+  chosen <- pickUp . take insCount . (!! insFrom) <$> get
+  modify (insFrom `modifyNth` drop insCount)
+  modify (insTo `modifyNth` (chosen++))
 
-finalTopCrates ∷ (Instruction → [CrateStack] → [CrateStack])
-               → ([CrateStack], [Instruction])
-               → String
+finalTopCrates 
+  ∷ (Instruction → State [CrateStack] ()) → ([CrateStack], [Instruction]) → String
 finalTopCrates perform (initialStacks, instructions) = map Unsafe.head finalStacks
-  where finalStacks = foldl' (flip perform) initialStacks instructions
+  where finalStacks = flip execState initialStacks $ traverse perform instructions
 
 main ∷ IO ()
 main = aocMain "inputs/05.txt" Solution {..}
@@ -89,7 +83,7 @@ main = aocMain "inputs/05.txt" Solution {..}
     parse = parseDay05
 
     solvePart1 ∷ ([CrateStack], [Instruction]) → String
-    solvePart1 = finalTopCrates (performInstruction reverse)
+    solvePart1 = finalTopCrates $ performInstruction reverse
 
     solvePart2 ∷ ([CrateStack], [Instruction]) → String
-    solvePart2 = finalTopCrates (performInstruction id)
+    solvePart2 = finalTopCrates $ performInstruction id
