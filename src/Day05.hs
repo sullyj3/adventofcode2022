@@ -1,4 +1,6 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+{-# LANGUAGE NoFieldSelectors #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 module Day05 where
 
 import           AOC
@@ -16,9 +18,9 @@ import           Utils                  (selectIndices)
 
 type CrateStack = [Char]
 
-data Instruction = Instruction { insCount ∷ Int
-                               , insFrom  ∷ Int
-                               , insTo    ∷ Int }
+data Instruction = Instruction { count ∷ Int
+                               , from  ∷ Int
+                               , to    ∷ Int }
   deriving Show
 
 -------------
@@ -37,7 +39,7 @@ parseInstructions ∷ Text → [Instruction]
 parseInstructions = unsafeParse $ linesOf (toInstruction <$> numLine)
   where
     -- subtract 1 from indices because haskell uses 0-based indexing, not 1-based
-    toInstruction [a,b,c] = Instruction { insCount=a, insFrom=b-1, insTo=c-1 }
+    toInstruction [a,b,c] = Instruction { count=a, from=b-1, to=c-1 }
     toInstruction _ = error "line does not contain exactly 3 numbers"
 
 parseDay05 ∷ Text → ([CrateStack], [Instruction])
@@ -51,17 +53,17 @@ parseDay05 = (parseCrates *** parseInstructions) . splitCratesInstructions
 ---------------
 
 performInstruction ∷ (CrateStack → CrateStack) → Instruction → State [CrateStack] ()
-performInstruction pickUp (Instruction {..}) = do
-  chosen <- pickUp . take insCount . (!! insFrom) <$> get
-  ix insFrom %= drop insCount
-  ix insTo   %= (chosen ++)
+performInstruction possiblyReverse instruct = do
+  movedCrates <- possiblyReverse . take instruct.count . (!! instruct.from) <$> get
+  ix instruct.from %= drop instruct.count
+  ix instruct.to   %= (movedCrates ++)
 
 finalTopCrates
   ∷ (CrateStack → CrateStack) → ([CrateStack], [Instruction]) → String
-finalTopCrates pickup (initialStacks, instructions) = map Unsafe.head finalStacks
+finalTopCrates possiblyReverse (initialStacks, instructions) = map Unsafe.head finalStacks
   where
     finalStacks = execState performInstructions initialStacks
-    performInstructions = traverse (performInstruction pickup) instructions
+    performInstructions = traverse (performInstruction possiblyReverse) instructions
 
 main ∷ IO ()
 main = aocMain "inputs/05.txt" Solution {..}
