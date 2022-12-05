@@ -12,6 +12,7 @@ import qualified Relude.Unsafe  as Unsafe
 import           Relude.Unsafe  ((!!))
 import           Utils          (selectIndices)
 import Optics.State.Operators ((%=))
+import AOC.Parsers (linesOf)
 
 -------------
 -- Parsing --
@@ -41,10 +42,10 @@ parseInstruction = nonDigits *> do
   -- we subtract 1 from all indices so that we can use 0 based indexing with !!
   pure $ Instruction { insCount=a, insFrom=b-1, insTo=c-1 }
   where
-    nonDigits = some (satisfy $ not . isDigit)
+    nonDigits = some (satisfy $ \c -> not (isDigit c) && c /= '\n')
 
 parseInstructions ∷ Text → [Instruction]
-parseInstructions = map (unsafeParse parseInstruction) . lines
+parseInstructions = unsafeParse $ linesOf parseInstruction
 
 parseDay05 ∷ Text → ([CrateStack], [Instruction])
 parseDay05 = (parseCrates *** parseInstructions) . splitCratesInstructions
