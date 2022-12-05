@@ -14,10 +14,12 @@ data Solution i o = Solution
 
 aocMain ∷ Show o ⇒ FilePath → Solution i o → IO ()
 aocMain inputPath sol =
-  uncurry (*>)
-    . both putStrLn
+      putStrLn
+    . uncurry unline
     . (<<*>>) (both (<>) ("part 1: ", "part 2: ")) 
     . both show 
     . (sol.part1 &&& sol.part2) 
     . sol.parse
     =<< T.readFile inputPath
+  where
+  unline a b = a ++ "\n" ++ b
