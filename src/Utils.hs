@@ -84,7 +84,7 @@ selectIndices = go 0
         go i (idx:idxs) (x:xs)
           | i == idx  = x : go (i+1) idxs xs
           | otherwise = go (i+1) (idx:idxs) xs
-        go _ _ [] = error "list doesn't contain all of the indices."
+        go _ _ [] = []
 
 
 count ∷ (a → Bool) → [a] → Int
