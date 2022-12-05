@@ -49,18 +49,15 @@ parseDay05 = (parseCrates *** parseInstructions) . splitCratesInstructions
 -- Solutions --
 ---------------
 
-performInstruction ∷ (CrateStack → CrateStack) → Instruction → State [CrateStack] ()
-performInstruction possiblyReverse instruct = do
-  (movedCrates, remaining) <- splitAt instruct.count . (!! instruct.from) <$> get
-  ix instruct.from .= remaining
-  ix instruct.to   %= (possiblyReverse movedCrates ++)
-
 finalTopCrates
   ∷ (CrateStack → CrateStack) → ([CrateStack], [Instruction]) → String
 finalTopCrates possiblyReverse (initialStacks, instructions) = map Unsafe.head finalStacks
   where
     finalStacks = flip execState initialStacks $
-      for_ instructions $ performInstruction possiblyReverse
+      for_ instructions $ \instruct -> do
+        (movedCrates, remaining) <- splitAt instruct.count . (!! instruct.from) <$> get
+        ix instruct.from .= remaining
+        ix instruct.to   %= (possiblyReverse movedCrates ++)
 
 main ∷ IO ()
 main = aocMain "inputs/05.txt" Solution {..}
