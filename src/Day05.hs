@@ -2,14 +2,16 @@
 module Day05 where
 
 import           AOC
-import           AOC.Parse     hiding (State)
-import           Control.Arrow ((***))
-import           Data.Char     (isDigit, isSpace)
-import qualified Data.Text     as T
-import           Prelude       hiding (some)
-import qualified Relude.Unsafe as Unsafe
-import           Relude.Unsafe ((!!))
-import           Utils         (selectIndices)
+import           AOC.Parse      hiding (State)
+import           Control.Arrow  ((***))
+import           Data.Char      (isDigit, isSpace)
+import qualified Data.Text      as T
+import           Optics.At.Core (ix)
+import           Optics.Core    ((%~))
+import           Prelude        hiding (some)
+import qualified Relude.Unsafe  as Unsafe
+import           Relude.Unsafe  ((!!))
+import           Utils          (selectIndices)
 
 -------------
 -- Parsing --
@@ -62,16 +64,11 @@ parseDay05 = (parseCrates *** parseInstructions) . splitCratesInstructions . lin
 -- Solutions --
 ---------------
 
-modifyNth ∷ Int → (a → a) → [a] → [a]
-modifyNth _ _ []     = []
-modifyNth 0 f (x:xs) = f x : xs
-modifyNth n f (x:xs) = x : modifyNth (n-1) f xs
-
 performInstruction ∷ (CrateStack → CrateStack) → Instruction → State [CrateStack] ()
 performInstruction pickUp (Instruction {..}) = do
   chosen <- pickUp . take insCount . (!! insFrom) <$> get
-  modify $ (insFrom `modifyNth` drop insCount)
-         . (insTo `modifyNth` (chosen++))
+  modify (\stacks -> stacks & ix insFrom %~ drop insCount
+                            & ix insTo   %~ (chosen ++))
 
 finalTopCrates
   ∷ (Instruction → State [CrateStack] ()) → ([CrateStack], [Instruction]) → String
