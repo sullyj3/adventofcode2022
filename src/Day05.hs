@@ -5,7 +5,7 @@ import           AOC
 import           AOC.Parse              hiding (State)
 import           AOC.Parsers            (linesOf, numLine)
 import           Control.Arrow          ((***))
-import           Data.Char              (isDigit, isUpper)
+import           Data.Char              (isUpper)
 import qualified Data.Text              as T
 import           Optics.At.Core         (ix)
 import           Optics.State.Operators ((%=))
@@ -14,14 +14,16 @@ import qualified Relude.Unsafe          as Unsafe
 import           Relude.Unsafe          ((!!))
 import           Utils                  (selectIndices)
 
+type CrateStack = [Char]
+
+data Instruction = Instruction { insCount ∷ Int
+                               , insFrom  ∷ Int
+                               , insTo    ∷ Int }
+  deriving Show
+
 -------------
 -- Parsing --
 -------------
-
-splitCratesInstructions ∷ Text → (Text, Text)
-splitCratesInstructions = second (T.drop 2) . T.breakOn "\n\n"
-
-type CrateStack = [Char]
 
 -- return a list of crate columns
 parseCrates ∷ Text → [CrateStack]
@@ -31,19 +33,18 @@ parseCrates =
   . T.transpose
   . lines
 
-data Instruction = Instruction { insCount ∷ Int
-                               , insFrom  ∷ Int
-                               , insTo    ∷ Int }
-  deriving Show
-
 parseInstructions ∷ Text → [Instruction]
 parseInstructions = unsafeParse $ linesOf (toInstruction <$> numLine)
   where
+    -- subtract 1 from indices because haskell uses 0-based indexing, not 1-based
     toInstruction [a,b,c] = Instruction { insCount=a, insFrom=b-1, insTo=c-1 }
     toInstruction _ = error "line does not contain exactly 3 numbers"
 
 parseDay05 ∷ Text → ([CrateStack], [Instruction])
 parseDay05 = (parseCrates *** parseInstructions) . splitCratesInstructions
+  where
+    splitCratesInstructions ∷ Text → (Text, Text)
+    splitCratesInstructions = second (T.drop 2) . T.breakOn "\n\n"
 
 ---------------
 -- Solutions --
