@@ -45,7 +45,7 @@ data Instruction = Instruction { insCount :: Int
 
 parseInstruction ∷ Parser Instruction
 parseInstruction = nonDigits *> do
-  [a, b, c] <- sepEndBy decimal nonDigits
+  [a, b, c] <- decimal `sepEndBy` nonDigits
   -- we subtract 1 from all indices so that we can use 0 based indexing with !!
   pure $ Instruction { insCount=a, insFrom=b-1, insTo=c-1 }
   where
