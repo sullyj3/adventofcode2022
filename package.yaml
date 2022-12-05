@@ -38,6 +38,7 @@ dependencies:
   - time
   - extra
   - megaparsec
+  - bifunctors
 
 ghc-options:
 - -Wall

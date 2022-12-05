@@ -3,6 +3,8 @@
 module AOC where
 
 import qualified Data.Text.IO as T
+import Utils (both)
+import Data.Biapplicative
 
 data Solution i o = Solution 
   { parse ∷ Text → i
@@ -11,7 +13,11 @@ data Solution i o = Solution
   }
 
 aocMain ∷ Show o ⇒ FilePath → Solution i o → IO ()
-aocMain inputPath sol = do
-  input ← sol.parse <$> T.readFile inputPath
-  putStrLn $ "part 1: " <> show (sol.part1 input)
-  putStrLn $ "part 2: " <> show (sol.part2 input)
+aocMain inputPath sol =
+  uncurry (*>)
+    . both putStrLn
+    . (<<*>>) (both (<>) ("part 1: ", "part 2: ")) 
+    . both show 
+    . (sol.part1 &&& sol.part2) 
+    . sol.parse
+    =<< T.readFile inputPath
