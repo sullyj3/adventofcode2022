@@ -16,8 +16,10 @@ splitCratesInstructions input = (crates, instructions)
     (crates, _numRow : _blankLine : instructions) = break isNumRow input
     isNumRow = T.all isDigit . T.filter (not . isSpace)
 
--- return a list of crate columns
-parseCrates ∷ [Text] → [[Char]]
+type CrateStack = [Char]
+
+-- given lines of input, return a list of crate columns
+parseCrates ∷ [Text] → [CrateStack]
 parseCrates =
     map catMaybes
   . transpose
@@ -45,8 +47,6 @@ parseInstruction = liftA3 Instruction
 
 parseInstructions ∷ [Text] → [Instruction]
 parseInstructions = map (unsafeParse parseInstruction)
-
-type CrateStack = [Char]
 
 parseDay05 ∷ Text → ([CrateStack], [Instruction])
 parseDay05 input = (parseCrates crateLines, parseInstructions instructionLines)
