@@ -26,41 +26,39 @@ import qualified Day23
 import qualified Day24
 import qualified Day25
 
-import Control.Exception
-import Data.Time.Clock
-import Data.Time (toGregorian, localDay, zonedTimeToLocalTime)
-import Data.Time (utcToLocalZonedTime)
+import           Control.Exception
+import           Data.Time          (localDay, toGregorian, utcToLocalZonedTime,
+                                     zonedTimeToLocalTime)
+import           Data.Time.Clock
 
-import qualified Relude.Unsafe as Unsafe
+import           Data.Time.Calendar (DayOfMonth, MonthOfYear, Year)
+import qualified Relude.Unsafe      as Unsafe
 
 data Invocation = CurrentDay | GivenDay Int | AllDays
 
 
 parseArgs ∷ [String] → Invocation
 parseArgs = \case
-  [] → CurrentDay
+  []      → CurrentDay
   ["all"] → AllDays
-  [n] → GivenDay $ Unsafe.read n
-  _ → error "too many arguments!"
+  [n]     → GivenDay $ Unsafe.read n
+  _       → error "too many arguments!"
 
 
 main ∷ IO ()
-main = do 
+main = do
   invocation ← parseArgs <$> getArgs
   case invocation of
     CurrentDay → currentDay
     GivenDay n → runDay n
     -- TODO only run days that have happened yet
-    AllDays → traverse_ runDay [1..25]
+    AllDays    → traverse_ runDay [1..25]
 
 
 currentDay ∷ IO ()
 currentDay = do
-  currentTime ← getCurrentTime
-  localTime ← utcToLocalZonedTime currentTime
-  let localTime' = zonedTimeToLocalTime localTime
-      (year, month, day) = toGregorian $ localDay localTime'
-  putStrLn $ "Today is " ++ show day ++ "/" ++ show month ++ "/" ++ show year
+  date@(_year, month, day) ← getDateGregorian
+  putStrLn $ "Today is " ++ formatDateAustralian date
   handleToday day month
   where
     isAdvent day month = month == 12 && day <= 25
@@ -70,6 +68,17 @@ currentDay = do
         putStrLn $ "It's day " ++ show day ++ " of Advent!"
         runDay day
       | otherwise = putStrLn "It's not currently Advent. You'll need to specify a day to run."
+
+    getDateGregorian ∷ IO (Year, MonthOfYear, DayOfMonth)
+    getDateGregorian = do
+      currentTime ← getCurrentTime
+      localTime ← utcToLocalZonedTime currentTime
+      let localTime' = zonedTimeToLocalTime localTime
+      pure $ toGregorian $ localDay localTime'
+
+    formatDateAustralian ∷ (Year, MonthOfYear, DayOfMonth) → String
+    formatDateAustralian (year, month, day) =
+      show day ++ "/" ++ show month ++ "/" ++ show year
 
 
 -- Handles errors without crashing
@@ -83,8 +92,8 @@ runDay day = do
     Left err → putStrLn $ "Day " <> show day <> " failed with error: " <> show err
 
 
-dayMains :: [IO ()]
-dayMains = 
+dayMains ∷ [IO ()]
+dayMains =
   [ Day01.main
   , Day02.main
   , Day03.main
