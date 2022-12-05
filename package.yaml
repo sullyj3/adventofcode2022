@@ -20,8 +20,11 @@ language: GHC2021
 default-extensions: 
 - UnicodeSyntax
 - LambdaCase
-- RecordWildCards
 - OverloadedStrings
+# records
+- RecordWildCards
+- OverloadedRecordDot
+- NoFieldSelectors
 
 dependencies:
   - name: base

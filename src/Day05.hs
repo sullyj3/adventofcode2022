@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
-{-# LANGUAGE NoFieldSelectors #-}
-{-# LANGUAGE OverloadedRecordDot #-}
 module Day05 where
 
 import           AOC
