@@ -38,9 +38,9 @@ parseCrateRow = map keepAlphas
     keepAlphas c | isSpace c = Nothing
                  | otherwise = Just c
 
-data Instruction = Instruction { insCount :: Int
-                               , insFrom  :: Int
-                               , insTo    :: Int }
+data Instruction = Instruction { insCount ∷ Int
+                               , insFrom  ∷ Int
+                               , insTo    ∷ Int }
   deriving Show
 
 parseInstruction ∷ Parser Instruction
@@ -69,10 +69,10 @@ modifyNth n f (x:xs) = x : modifyNth (n-1) f xs
 performInstruction ∷ (CrateStack → CrateStack) → Instruction → State [CrateStack] ()
 performInstruction pickUp (Instruction {..}) = do
   chosen <- pickUp . take insCount . (!! insFrom) <$> get
-  modify (insFrom `modifyNth` drop insCount)
-  modify (insTo `modifyNth` (chosen++))
+  modify $ (insFrom `modifyNth` drop insCount)
+         . (insTo `modifyNth` (chosen++))
 
-finalTopCrates 
+finalTopCrates
   ∷ (Instruction → State [CrateStack] ()) → ([CrateStack], [Instruction]) → String
 finalTopCrates perform (initialStacks, instructions) = map Unsafe.head finalStacks
   where finalStacks = flip execState initialStacks $ traverse perform instructions
