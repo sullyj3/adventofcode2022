@@ -11,6 +11,10 @@ import           Text.Megaparsec.Char (space, string)
 import           Utils                (selectIndices)
 import Control.Arrow ((***))
 
+-------------
+-- Parsing --
+-------------
+
 splitCratesInstructions ∷ [Text] → ([Text], [Text])
 splitCratesInstructions input = (crates, instructions)
   where
@@ -51,6 +55,10 @@ parseInstructions = map (unsafeParse parseInstruction)
 
 parseDay05 ∷ Text → ([CrateStack], [Instruction])
 parseDay05 = (parseCrates *** parseInstructions) . splitCratesInstructions . lines
+
+---------------
+-- Solutions --
+---------------
 
 modifyNth ∷ Int → (a → a) → [a] → [a]
 modifyNth _ _ []     = []
