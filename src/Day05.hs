@@ -19,7 +19,8 @@ splitCratesInstructions ∷ [Text] → ([Text], [Text])
 splitCratesInstructions input = (crates, instructions)
   where
     (crates, _numRow : _blankLine : instructions) = break isNumRow input
-    isNumRow = T.all isDigit . T.filter (not . isSpace)
+    -- phoenix combinator!
+    isNumRow = T.all $ liftA2 (||) isSpace isDigit
 
 type CrateStack = [Char]
 
