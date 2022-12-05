@@ -36,6 +36,7 @@ dependencies:
   - optics-core
   - time
   - extra
+  - megaparsec
 
 ghc-options:
 - -Wall
