@@ -3,13 +3,13 @@ module Day05 where
 
 import           AOC
 import           AOC.Parse
+import           Control.Arrow        ((***))
 import           Data.Char            (isDigit, isSpace)
 import qualified Data.Text            as T
+import           Prelude              hiding (some)
 import qualified Relude.Unsafe        as Unsafe
 import           Relude.Unsafe        ((!!))
-import           Text.Megaparsec.Char (space, string)
 import           Utils                (selectIndices)
-import Control.Arrow ((***))
 
 -------------
 -- Parsing --
@@ -44,11 +44,12 @@ data Instruction = Instruction { insCount :: Int
   deriving Show
 
 parseInstruction ∷ Parser Instruction
-parseInstruction = liftA3 Instruction
-  (string "move " *> decimal <* space)
+parseInstruction = nonDigits *> do
+  [a, b, c] <- sepEndBy decimal nonDigits
   -- we subtract 1 from all indices so that we can use 0 based indexing with !!
-  (string "from " *> (pred <$> decimal) <* space)
-  (string "to "   *> (pred <$> decimal) <* space)
+  pure $ Instruction { insCount=a, insFrom=b-1, insTo=c-1 }
+  where
+    nonDigits = some (satisfy $ not . isDigit)
 
 parseInstructions ∷ [Text] → [Instruction]
 parseInstructions = map (unsafeParse parseInstruction)
