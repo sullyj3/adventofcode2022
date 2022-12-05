@@ -12,7 +12,7 @@ import qualified Relude.Unsafe  as Unsafe
 import           Relude.Unsafe  ((!!))
 import           Utils          (selectIndices)
 import Optics.State.Operators ((%=))
-import AOC.Parsers (linesOf)
+import AOC.Parsers (linesOf, numLine)
 
 -------------
 -- Parsing --
@@ -37,12 +37,10 @@ data Instruction = Instruction { insCount ∷ Int
   deriving Show
 
 parseInstruction ∷ Parser Instruction
-parseInstruction = nonDigits *> do
-  [a, b, c] <- decimal `sepEndBy` nonDigits
+parseInstruction = do
+  [a, b, c] <- numLine
   -- we subtract 1 from all indices so that we can use 0 based indexing with !!
   pure $ Instruction { insCount=a, insFrom=b-1, insTo=c-1 }
-  where
-    nonDigits = some (satisfy $ \c -> not (isDigit c) && c /= '\n')
 
 parseInstructions ∷ Text → [Instruction]
 parseInstructions = unsafeParse $ linesOf parseInstruction

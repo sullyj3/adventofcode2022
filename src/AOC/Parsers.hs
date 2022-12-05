@@ -4,10 +4,13 @@ module AOC.Parsers
   , pairOf
   , numPair
   , linesOf
+  , numLine
   ) where
 
 import           AOC.Parse
 import           Text.Megaparsec.Char
+import Prelude hiding (many, some)
+import Data.Char (isDigit)
 
 commaSeparatedInts ∷ Parser [Int]
 commaSeparatedInts = decimal `sepBy` single ','
@@ -20,3 +23,10 @@ numPair = pairOf decimal
 
 linesOf ∷ Parser a → Parser [a]
 linesOf p = p `sepEndBy` newline
+
+-- treats all non-digit characters as separators
+numLine :: Num a => Parser [a]
+numLine = many nonDigit *> decimal `sepEndBy` some nonDigit
+  where
+    nonDigit = satisfy $ \c -> not (isDigit c) && c /= '\n'
+
