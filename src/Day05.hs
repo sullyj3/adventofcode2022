@@ -4,7 +4,7 @@ module Day05 where
 import           AOC
 import           AOC.Parse      hiding (State)
 import           Control.Arrow  ((***))
-import           Data.Char      (isDigit, isSpace)
+import           Data.Char      (isDigit, isSpace, isUpper)
 import qualified Data.Text      as T
 import           Optics.At.Core (ix)
 import           Prelude        hiding (some)
@@ -28,18 +28,11 @@ type CrateStack = [Char]
 
 -- given lines of input, return a list of crate columns
 parseCrates ∷ [Text] → [CrateStack]
-parseCrates =
-    map catMaybes
+parseCrates = 
+    map (filter isUpper)
+  . selectIndices [1,5..]
   . transpose
-  . map parseCrateRow
-
-parseCrateRow ∷ Text → [Maybe Char]
-parseCrateRow = map keepAlphas
-              . selectIndices [1,5..]
-              . toString
-  where
-    keepAlphas c | isSpace c = Nothing
-                 | otherwise = Just c
+  . map toString
 
 data Instruction = Instruction { insCount ∷ Int
                                , insFrom  ∷ Int
