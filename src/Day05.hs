@@ -59,8 +59,8 @@ finalTopCrates
   ∷ (CrateStack → CrateStack) → ([CrateStack], [Instruction]) → String
 finalTopCrates possiblyReverse (initialStacks, instructions) = map Unsafe.head finalStacks
   where
-    finalStacks = execState performInstructions initialStacks
-    performInstructions = traverse (performInstruction possiblyReverse) instructions
+    finalStacks = flip execState initialStacks $
+      for_ instructions $ performInstruction possiblyReverse
 
 main ∷ IO ()
 main = aocMain "inputs/05.txt" Solution {..}
