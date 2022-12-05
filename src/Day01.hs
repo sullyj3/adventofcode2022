@@ -10,8 +10,8 @@ import           Utils      (tRead)
 solution = Solution {..}
   where
     parse = id
-    solvePart1 = const ()
-    solvePart2 = const ()
+    part1 = const ()
+    part2 = const ()
 
 
 main = aocMain "inputs/01.txt" solution

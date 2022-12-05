@@ -25,8 +25,8 @@ main = aocMain "inputs/day04.txt" Solution {..}
     parse ∷ Text → [ElfPair]
     parse = unsafeParse $ linesOf $ pairOf (numPair "-") ","
 
-    solvePart1 ∷ [ElfPair] → Int
-    solvePart1 = count $ uncurry oneContainsOther
+    part1 ∷ [ElfPair] → Int
+    part1 = count $ uncurry oneContainsOther
 
-    solvePart2 ∷ [ElfPair] → Int
-    solvePart2 = count $ uncurry overlaps
+    part2 ∷ [ElfPair] → Int
+    part2 = count $ uncurry overlaps

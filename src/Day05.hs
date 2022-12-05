@@ -68,8 +68,8 @@ main = aocMain "inputs/05.txt" Solution {..}
   where
     parse = parseDay05
 
-    solvePart1 ∷ ([CrateStack], [Instruction]) → String
-    solvePart1 = finalTopCrates reverse
+    part1 ∷ ([CrateStack], [Instruction]) → String
+    part1 = finalTopCrates reverse
 
-    solvePart2 ∷ ([CrateStack], [Instruction]) → String
-    solvePart2 = finalTopCrates id
+    part2 ∷ ([CrateStack], [Instruction]) → String
+    part2 = finalTopCrates id

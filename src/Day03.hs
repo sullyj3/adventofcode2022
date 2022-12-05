@@ -23,16 +23,16 @@ main = aocMain "inputs/day03.txt" Solution {..}
     totalPriority ∷ [Char] → Int
     totalPriority = sum . map priority
 
-    solvePart1 ∷ [Text] → Int
-    solvePart1 = totalPriority . map findDup
+    part1 ∷ [Text] → Int
+    part1 = totalPriority . map findDup
       where
         findDup ∷ Text → Char
         findDup = Unsafe.head . uncurry (intersect `on` toString) . halves
 
         halves s = T.splitAt (T.length s `div` 2) s
 
-    solvePart2 ∷ [Text] → Int
-    solvePart2 = totalPriority . map findCommon . chunksOf 3
+    part2 ∷ [Text] → Int
+    part2 = totalPriority . map findCommon . chunksOf 3
       where
         findCommon ∷ [Text] → Char
         findCommon = Unsafe.head . foldl1' intersect . map toString
