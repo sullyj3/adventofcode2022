@@ -71,9 +71,9 @@ performInstruction pickUp (Instruction {..}) = do
   ix insTo   %= (chosen ++)
 
 finalTopCrates
-  ∷ (Instruction → State [CrateStack] ()) → ([CrateStack], [Instruction]) → String
-finalTopCrates perform (initialStacks, instructions) = map Unsafe.head finalStacks
-  where finalStacks = flip execState initialStacks $ traverse perform instructions
+  ∷ (CrateStack -> CrateStack) → ([CrateStack], [Instruction]) → String
+finalTopCrates pickup (initialStacks, instructions) = map Unsafe.head finalStacks
+  where finalStacks = flip execState initialStacks $ traverse (performInstruction pickup) instructions
 
 main ∷ IO ()
 main = aocMain "inputs/05.txt" Solution {..}
@@ -81,7 +81,7 @@ main = aocMain "inputs/05.txt" Solution {..}
     parse = parseDay05
 
     solvePart1 ∷ ([CrateStack], [Instruction]) → String
-    solvePart1 = finalTopCrates $ performInstruction reverse
+    solvePart1 = finalTopCrates reverse
 
     solvePart2 ∷ ([CrateStack], [Instruction]) → String
-    solvePart2 = finalTopCrates $ performInstruction id
+    solvePart2 = finalTopCrates id
