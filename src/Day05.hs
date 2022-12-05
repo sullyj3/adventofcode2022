@@ -7,11 +7,11 @@ import           Control.Arrow  ((***))
 import           Data.Char      (isDigit, isSpace)
 import qualified Data.Text      as T
 import           Optics.At.Core (ix)
-import           Optics.Core    ((%~))
 import           Prelude        hiding (some)
 import qualified Relude.Unsafe  as Unsafe
 import           Relude.Unsafe  ((!!))
 import           Utils          (selectIndices)
+import Optics.State.Operators ((%=))
 
 -------------
 -- Parsing --
@@ -67,8 +67,8 @@ parseDay05 = (parseCrates *** parseInstructions) . splitCratesInstructions . lin
 performInstruction ∷ (CrateStack → CrateStack) → Instruction → State [CrateStack] ()
 performInstruction pickUp (Instruction {..}) = do
   chosen <- pickUp . take insCount . (!! insFrom) <$> get
-  modify (\stacks -> stacks & ix insFrom %~ drop insCount
-                            & ix insTo   %~ (chosen ++))
+  ix insFrom %= drop insCount
+  ix insTo   %= (chosen ++)
 
 finalTopCrates
   ∷ (Instruction → State [CrateStack] ()) → ([CrateStack], [Instruction]) → String

@@ -34,6 +34,7 @@ dependencies:
       - hiding (Relude)
       - (Relude as Prelude)
   - optics-core
+  - optics-extra
   - time
   - extra
   - megaparsec
