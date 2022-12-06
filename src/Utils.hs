@@ -5,6 +5,7 @@ import           Data.Char     (digitToInt, intToDigit)
 import qualified Data.Text     as T
 import           Numeric
 import qualified Relude.Unsafe as Unsafe
+import Data.List (nub)
 
 
 both ∷ Bifunctor f ⇒ (a → b) → f a a → f b b
@@ -90,3 +91,8 @@ selectIndices = go 0
 count ∷ (a → Bool) → [a] → Int
 count p = length . filter p
 
+slidingWindow ∷ Int → [a] → [[a]]
+slidingWindow n = takeWhile ((== n) . length) . map (take n) . tails
+
+allDistinct ∷ Eq a ⇒ [a] → Bool
+allDistinct xs = nub xs == xs
