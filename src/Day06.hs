@@ -3,7 +3,7 @@ module Day06 (main) where
 import           AOC
 import           Data.List     (findIndex)
 import           Relude.Unsafe (fromJust)
-import Utils (slidingWindow, allDistinct)
+import           Utils         (allDistinct, slidingWindow)
 
 -------------
 -- Parsing --

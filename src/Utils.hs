@@ -1,34 +1,29 @@
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 module Utils where
 
-import           Data.Char     (digitToInt, intToDigit)
-import qualified Data.Text     as T
+import           Data.Char       (digitToInt, intToDigit)
+import           Data.List       (nub)
+import           Data.List.Extra (anySame)
+import qualified Data.Text       as T
 import           Numeric
-import qualified Relude.Unsafe as Unsafe
-import Data.List (nub)
-
+import qualified Relude.Unsafe   as Unsafe
 
 both ∷ Bifunctor f ⇒ (a → b) → f a a → f b b
 both = join bimap
 
-
 parsePair ∷ (Text → a) → Text → Text → (a, a)
 parsePair parseElems sep = both parseElems . twoListToPair . T.splitOn sep
-
 
 parsePair2 ∷ (Text → b) → (Text → d) → Text → Text → (b, d)
 parsePair2 parseLeft parseRight sep =
   bimap parseLeft parseRight . twoListToPair . T.splitOn sep
 
-
 unreachable ∷ a
 unreachable = error "Unreachable reached!"
-
 
 twoListToPair ∷ [a] → (a,a)
 twoListToPair [a,b] = (a,b)
 twoListToPair l = error $ "This list has " <> show (length l) <> " elements!"
-
 
 intList ∷ Text → Maybe [Int]
 intList = traverse (readMaybe . toString) . lines
@@ -87,7 +82,6 @@ selectIndices = go 0
           | otherwise = go (i+1) (idx:idxs) xs
         go _ _ [] = []
 
-
 count ∷ (a → Bool) → [a] → Int
 count p = length . filter p
 
@@ -95,4 +89,4 @@ slidingWindow ∷ Int → [a] → [[a]]
 slidingWindow n = takeWhile ((== n) . length) . map (take n) . tails
 
 allDistinct ∷ Eq a ⇒ [a] → Bool
-allDistinct xs = nub xs == xs
+allDistinct = not . anySame
