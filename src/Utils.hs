@@ -86,7 +86,8 @@ count ∷ (a → Bool) → [a] → Int
 count p = length . filter p
 
 slidingWindow ∷ Int → [a] → [[a]]
-slidingWindow n = takeWhile ((== n) . length) . map (take n) . tails
+slidingWindow n = transpose' . take n . tails
+  where transpose' = getZipList . traverse ZipList
 
 allDistinct ∷ Eq a ⇒ [a] → Bool
 allDistinct = not . anySame
