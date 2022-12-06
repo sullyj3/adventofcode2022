@@ -51,34 +51,40 @@ main = do
   case invocation of
     CurrentDay → currentDay
     GivenDay n → runDay n
-    -- TODO only run days that have happened yet
-    AllDays    → traverse_ runDay [1..25]
+    AllDays → do
+      (year, month, day) ← getDateGregorian
+      let maxDay
+            | month == 12 && year <= 2022 = day
+            | otherwise = 25
+      traverse_ runDay [1..maxDay]
 
+getDateGregorian ∷ IO (Year, MonthOfYear, DayOfMonth)
+getDateGregorian = do
+  currentTime ← getCurrentTime
+  localTime ← utcToLocalZonedTime currentTime
+  let localTime' = zonedTimeToLocalTime localTime
+  pure $ toGregorian $ localDay localTime'
+
+isAdvent ∷ Int → MonthOfYear → Bool
+isAdvent day month = month == 12 && day <= 25
+
+handleToday ∷ Int → MonthOfYear → IO ()
+handleToday day month
+  | isAdvent day month = do
+    putStrLn $ "It's day " ++ show day ++ " of Advent!"
+    runDay day
+  | otherwise = putStrLn "It's not currently Advent. You'll need to specify a day to run."
 
 currentDay ∷ IO ()
 currentDay = do
   date@(_year, month, day) ← getDateGregorian
   putStrLn $ "Today is " ++ formatDateAustralian date
   handleToday day month
-  where
-    isAdvent day month = month == 12 && day <= 25
 
-    handleToday day month
-      | isAdvent day month = do
-        putStrLn $ "It's day " ++ show day ++ " of Advent!"
-        runDay day
-      | otherwise = putStrLn "It's not currently Advent. You'll need to specify a day to run."
 
-    getDateGregorian ∷ IO (Year, MonthOfYear, DayOfMonth)
-    getDateGregorian = do
-      currentTime ← getCurrentTime
-      localTime ← utcToLocalZonedTime currentTime
-      let localTime' = zonedTimeToLocalTime localTime
-      pure $ toGregorian $ localDay localTime'
-
-    formatDateAustralian ∷ (Year, MonthOfYear, DayOfMonth) → String
-    formatDateAustralian (year, month, day) =
-      show day ++ "/" ++ show month ++ "/" ++ show year
+formatDateAustralian ∷ (Year, MonthOfYear, DayOfMonth) → String
+formatDateAustralian (year, month, day) =
+  show day ++ "/" ++ show month ++ "/" ++ show year
 
 
 -- Handles errors without crashing
