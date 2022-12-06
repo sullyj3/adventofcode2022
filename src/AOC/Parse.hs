@@ -6,11 +6,12 @@ module AOC.Parse
   , unsafeParse
   ) where
 
-import qualified Relude.Unsafe              as Unsafe
-import           Text.Megaparsec            hiding (count, parse)
+import           Text.Megaparsec            hiding (count)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
 type Parser = Parsec Void Text
 
 unsafeParse ∷ Parser a → Text → a
-unsafeParse p = Unsafe.fromJust . parseMaybe p
+unsafeParse p t = case parse p "unsafeParse" t of
+  Left  e → error $ "parsing with unsafeParse failed:\n" <> toText (errorBundlePretty e)
+  Right a → a

@@ -20,10 +20,10 @@ overlaps (a,b) (c, d) = (a<=c || a<=d) -- a not greater than second range, and
                      && (c<=a || c<=b) -- c not greater than first range
 
 main ∷ IO ()
-main = aocMain "inputs/day04.txt" Solution {..}
+main = aocMain "inputs/day04.txt" Solution { parse=parseInput, ..}
   where
-    parse ∷ Text → [ElfPair]
-    parse = unsafeParse $ linesOf $ pairOf (numPair "-") ","
+    parseInput ∷ Text → [ElfPair]
+    parseInput = unsafeParse $ linesOf $ pairOf (numPair "-") ","
 
     part1 ∷ [ElfPair] → Int
     part1 = count $ uncurry oneContainsOther
