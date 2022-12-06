@@ -75,6 +75,6 @@ resultScore theResult = 3 * fromEnum theResult
 
 main ∷ IO ()
 main = do
-  contents ← T.readFile "inputs/day02.txt"
+  contents ← readFileText "inputs/day02.txt"
   print $ solvePart1 contents
   print $ solvePart2 contents

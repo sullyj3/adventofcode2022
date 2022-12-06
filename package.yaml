@@ -52,6 +52,7 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+- -Wno-deprecations
 
 library:
   source-dirs: src

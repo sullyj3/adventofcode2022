@@ -1,8 +1,5 @@
-{-# LANGUAGE NoFieldSelectors    #-}
-{-# LANGUAGE OverloadedRecordDot #-}
 module AOC where
 
-import qualified Data.Text.IO       as T
 import Utils (tShow)
 
 data Solution i o = Solution
@@ -13,7 +10,7 @@ data Solution i o = Solution
 
 aocMain ∷ forall i o. Show o ⇒ FilePath → Solution i o → IO ()
 aocMain inputPath sol = do
-  parsed <- sol.parse <$> T.readFile inputPath
+  parsed <- sol.parse <$> readFileText inputPath
   putTextLn . unlines $ [ run "part 1: " sol.part1 parsed
                         , run "part 2: " sol.part2 parsed ] 
   where
