@@ -25,6 +25,8 @@ default-extensions:
 - RecordWildCards
 - OverloadedRecordDot
 - NoFieldSelectors
+- TemplateHaskell
+- QuasiQuotes
 
 dependencies:
   - name: base
@@ -42,6 +44,8 @@ dependencies:
   - extra
   - megaparsec
   - bifunctors
+  - Clipboard
+  - PyF
 
 ghc-options:
 - -Wall

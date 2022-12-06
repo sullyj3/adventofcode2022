@@ -1,6 +1,6 @@
 #!/usr/bin/env oil
 
-# copies DayX.hs to the day given by day_number, replacing the Xs in its contents
+# copies DayX.hs to the day given by day_number, replacing the XXs in its contents
 # as appropriate
 proc generate_day(day_number) {
 	const day_str = $(printf "%-0*d" 2 $day_number)
@@ -10,9 +10,10 @@ proc generate_day(day_number) {
 		exit 2
 	}
 	echo "Creating file $new_file from template..."
-	sed "s/X/$day_str/g" DayX.hs > $new_file
+	sed "s/XX/$day_str/g" DayXX.hs > $new_file
 }
 
+# TODO: figure out how to add flag -f to overwrite existing files
 if (len(ARGV) === 0) {
 	echo "Generating all days in Advent..."
 	for i in @(seq 1 25) {
