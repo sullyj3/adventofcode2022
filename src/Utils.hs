@@ -4,6 +4,7 @@ module Utils where
 import           Data.Char       (digitToInt, intToDigit)
 import           Data.List       (nub)
 import           Data.List.Extra (anySame)
+import qualified Data.Map.Strict as Map
 import qualified Data.Text       as T
 import           Numeric
 import qualified Relude.Unsafe   as Unsafe
@@ -91,3 +92,7 @@ slidingWindow n = transpose' . take n . tails
 
 allDistinct ∷ Eq a ⇒ [a] → Bool
 allDistinct = not . anySame
+
+prettyMap ∷ (Show k, Show v) ⇒ Map k v → Text
+prettyMap = unlines . map (\(k,v) -> tShow k <> " -> " <> tShow v) . Map.toList
+
