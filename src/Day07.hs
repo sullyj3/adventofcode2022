@@ -2,147 +2,140 @@
 module Day07 (main) where
 
 import           AOC
-import           AOC.Parse hiding (State)
-import           AOC.Parsers
-import qualified Data.Text   as T
+import           AOC.Parse            hiding (State)
+import           Data.List            (foldl1', minimum)
+import qualified Data.Text            as T
+import           Prelude              hiding (many, some)
 import           PyF
-import           Utils       (tRead, prettyMap)
-import Prelude hiding (some)
-import Text.Megaparsec.Char (string, newline, alphaNumChar)
-import qualified Data.Map.Strict as Map
-import Data.Traversable (for)
-import Data.List (foldl1', minimum)
+import           Text.Megaparsec.Char (alphaNumChar, newline, string)
+import qualified Data.List.NonEmpty as NE
+import qualified Data.List as List
 
-
--- map of fully absolute paths to their contents
-type FileTree = Map Text File
 
 data File = File { fsize :: Int }
           | Dir  { dircontents :: [Text] } -- list of absolute paths
   deriving (Show)
 
 data CommandAndOutput = Cd Text | CdUp | Ls [LsEntry]
-  deriving Show
+  deriving (Show, Eq, Ord)
 
-data LsEntry = F { size :: Int, name :: Text}
+data LsEntry = F { name :: Text, size :: Int}
              | D { name :: Text }
-  deriving Show
+  deriving (Show, Eq, Ord)
 
 type Session = [CommandAndOutput]
 
+instance VisualStream Session where
+  showTokens :: Proxy Session -> NonEmpty (Token Session) -> String
+  showTokens p = List.unwords . NE.toList . fmap show
+
+instance TraversableStream Session where
+  reachOffset :: Int -> PosState s -> (Maybe String, PosState s)
+  reachOffset i s = (Nothing, s)
 
 -------------
 -- Parsing --
 -------------
-parseInput :: Text -> Session
-parseInput = unsafeParse $ some commandAndOutputP
+parseInput ∷ Text → FileTree2
+parseInput input = fileTree where
+  session = unsafeParse (some commandAndOutputP) input
+  fileTree = unsafeParse fileTreeP session
 
-commandAndOutputP :: Parser CommandAndOutput
+commandAndOutputP ∷ Parser CommandAndOutput
 commandAndOutputP = do
   _ <- string "$ "
   try cdUpP <|>
     try cdP <|>
     try lsP
 
-cdP :: Parser CommandAndOutput
+cdP ∷ Parser CommandAndOutput
 cdP = lineOf $ Cd <$> (string "cd " *> fileNameP)
 
-cdUpP :: Parser CommandAndOutput
-cdUpP = lineOf $ CdUp <$ string "cd .." 
+cdUpP ∷ Parser CommandAndOutput
+cdUpP = lineOf $ CdUp <$ string "cd .."
 
-fileNameP :: Parser Text
+fileNameP ∷ Parser Text
 fileNameP = T.pack <$> some (alphaNumChar <|> single '.' <|> single '/')
 
-lsP :: Parser CommandAndOutput
+lsP ∷ Parser CommandAndOutput
 lsP = Ls <$> (lineOf (string "ls") *> some lsEntryP)
 
-lsEntryP :: Parser LsEntry
+lsEntryP ∷ Parser LsEntry
 lsEntryP = lineOf $ try lsFileP <|> lsDirP
 
-lsDirP :: Parser LsEntry
+lsDirP ∷ Parser LsEntry
 lsDirP = string "dir " *> (D <$> fileNameP)
 
-lsFileP :: Parser LsEntry
-lsFileP = liftA2 F decimal (single ' ' *> fileNameP)
+lsFileP ∷ Parser LsEntry
+lsFileP = liftA2 (flip F) decimal (single ' ' *> fileNameP)
 
-lineOf :: Parser a -> Parser a
+lineOf ∷ Parser a → Parser a
 lineOf p = p <* newline
+
+data FileTree2 = FTDir Text [FileTree2]
+               | FTFile Text Int
+  deriving Show
+
+-- now parse the stream of commandAndOutputP into a FileTree2
+
+type ShellParser = Parsec Void Session
+
+fileTreeP ∷ ShellParser FileTree2
+fileTreeP = dirP
+
+dirP ∷ ShellParser FileTree2
+dirP = do
+  Cd dirname <- satisfy isCd
+  Ls entries <- satisfy isLs
+  childDirs <- many dirP
+  try (void $ satisfy isCdUp) <|> eof
+
+  let children ∷ [FileTree2]
+      children = mapMaybe (\case (D _)         -> Nothing
+                                 (F name size) -> Just $ FTFile name size)
+                          entries
+                <> childDirs
+
+  pure $ FTDir dirname children
+  where
+    isCd (Cd _) = True
+    isCd _      = False
+
+    isLs (Ls _) = True
+    isLs _      = False
+
+    isCdUp CdUp = True
+    isCdUp _    = False
+
 
 
 ---------------
 -- Solutions --
 ---------------
 
-type BreadCrumbs = [Text]
+nodes ∷ FileTree2 → [FileTree2]
+nodes t@(FTDir _ ts) = t : concatMap nodes ts
+nodes t@(FTFile _ _) = [t]
 
-buildTree :: Session -> FileTree
-buildTree session = fst $ execState (loop session) (Map.singleton "/" (Dir []), [])
+directories ∷ FileTree2 → [FileTree2]
+directories = filter isDir . nodes where
+  isDir (FTDir _ _) = True
+  isDir _           = False
+
+ftSize :: FileTree2 -> Int
+ftSize (FTDir _ contents) = sum (map ftSize contents)
+ftSize (FTFile _ size) = size
+
+part1 ∷ FileTree2 → Int
+part1 = sum . filter (<=100000) . map ftSize . directories
+
+part2 ∷ FileTree2 → Int
+part2 fileTree = dirSizeToDelete
   where
-    loop :: Session -> State (FileTree, BreadCrumbs) ()
-    loop = traverse_ $ \case
-      Ls lsEntries -> insertFiles lsEntries
-      Cd dir -> modify $ second (dir:)
-      CdUp -> modify $ second (drop 1)
-
-    toFile :: LsEntry -> File
-    toFile = \case
-      F size _ -> File size
-      D _      -> Dir []
-
-    insertFiles :: [LsEntry] -> State (FileTree, BreadCrumbs) ()
-    insertFiles lsEntries = do
-      currentDirPath <- gets (breadCrumbsAbsPath . snd)
-      -- traceM $ "inserting files in " <> show currentDirPath
-      breadcrumbs <- gets snd
-      -- traceM $ "breadcrumbs = " <> show breadcrumbs
-
-      -- insert the children of the current directory into the tree, returning each of their paths
-      -- TODO check map api for non for loop way of doing this
-      absPaths <- for lsEntries $ \entry -> do
-        let absPath = currentDirPath </> entry.name
-        -- traceM $ "inserting " <> show absPath
-        modify $ first $ Map.insert absPath (toFile entry)
-        pure absPath
-
-      -- set the contents of the current directory to the list of its children
-      modify $ first $ Map.insert currentDirPath (Dir absPaths)
-
-(</>) :: Text -> Text -> Text
-"/" </> p2 = "/" <> p2
-p1 </> p2 = p1 <> "/" <> p2
-
-breadCrumbsAbsPath :: BreadCrumbs -> Text
-breadCrumbsAbsPath crumbs = foldl1' (</>) (reverse crumbs)
-
-recursiveDirSize :: FileTree -> Text -> Int
-recursiveDirSize tree path = case Map.lookup path tree of
-  Nothing -> error $ "no such path: " <> show path
-  Just (File size) -> size
-  Just (Dir contents) -> sum $ recursiveDirSize tree <$> contents
-
-directories :: FileTree -> [Text]
-directories = Map.keys . Map.filter isDir
-  where
-    isDir (Dir _) = True
-    isDir _       = False
-
-part1 :: Session -> Int
-part1 session = sum . filter (<=100000) $ sizes
-  where 
-    tree = buildTree session
-    dirPaths = directories tree
-    sizes = map (recursiveDirSize tree) dirPaths
-
-part2 session = dirSizeToDelete
-  where
-    tree = buildTree session
-    totalUsedSpace = recursiveDirSize tree "/"
-    dirPaths = directories tree
-    sizes = map (recursiveDirSize tree) dirPaths
-
+    totalUsedSpace = ftSize fileTree
+    sizes = map ftSize . directories $ fileTree
     targetUsedSpace = 70000000 - 30000000
     spaceToFree = totalUsedSpace - targetUsedSpace
-
     dirSizeToDelete = minimum . filter (>=spaceToFree) $ sizes
 
 main ∷ IO ()
@@ -150,11 +143,11 @@ main = do
   -- let input = parseInput exampleInput
   -- print $ part1 input
   -- other testing here
-  aocSinglePartMain "inputs/07.txt" exampleInput parseInput part2
+  -- aocSinglePartMain "inputs/07.txt" exampleInput parseInput part1
 
-  -- aocMain "inputs/07.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
+  aocMain "inputs/07.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
 
-exampleInput :: Text
+exampleInput ∷ Text
 exampleInput = toText @String [str|$ cd /
 $ ls
 dir a
