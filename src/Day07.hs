@@ -18,8 +18,8 @@ parseInput = unsafeParse fileTreeP
 lineOf ∷ Parser a → Parser a
 lineOf p = p <* newline
 
-data FileTree = FTDir Text [FileTree]
-              | FTFile Text Int
+data FileTree = FTDir [FileTree]
+              | FTFile Int
   deriving Show
 
 fileTreeP ∷ Parser FileTree
@@ -27,7 +27,7 @@ fileTreeP = dirP
 
 dirP ∷ Parser FileTree
 dirP = do
-  dirname <- cdP
+  _ <- cdP
   entries <- lsP
   childDirs <- many (try dirP)
   try cdUpP <|> eof
@@ -35,12 +35,12 @@ dirP = do
   let children ∷ [FileTree]
       children = catMaybes entries <> childDirs
 
-  pure $ FTDir dirname children
+  pure $ FTDir children
   where
     cdP = lineOf $ string "$ cd " *> fileNameP
     lsP = lineOf (string "$ ls") *> many lsEntryP
     lsEntryP = lineOf $ try lsFileP <|> lsDirP
-    lsFileP = Just <$> liftA2 (flip FTFile) decimal (single ' ' *> fileNameP)
+    lsFileP = Just <$> (FTFile <$> decimal) <* (single ' ' *> fileNameP)
     lsDirP = Nothing <$ (string "dir " *> fileNameP)
     cdUpP = void $ lineOf $ string "$ cd .."
     fileNameP = do 
@@ -53,12 +53,12 @@ dirP = do
 ---------------
 
 directories ∷ FileTree → [FileTree]
-directories (FTFile _ _) = []
-directories d@(FTDir _ children) = d : concatMap directories children
+directories (FTFile _) = []
+directories d@(FTDir children) = d : concatMap directories children
 
 ftSize ∷ FileTree → Int
-ftSize (FTDir _ contents) = sum (map ftSize contents)
-ftSize (FTFile _ size)    = size
+ftSize (FTDir contents) = sum (map ftSize contents)
+ftSize (FTFile size)    = size
 
 dirSizes ∷ FileTree → [Int]
 dirSizes = map ftSize . directories
