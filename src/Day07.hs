@@ -9,19 +9,11 @@ import           Prelude              hiding (many, some)
 import           Text.Megaparsec.Char (alphaNumChar, newline, string)
 
 
-data CommandAndOutput = Cd Text | CdUp | Ls [LsEntry]
-  deriving (Show, Eq, Ord)
-
-data LsEntry = F { name :: Text, size :: Int}
-             | D { name :: Text }
-  deriving (Show, Eq, Ord)
-
 -------------
 -- Parsing --
 -------------
 parseInput ∷ Text → FileTree
 parseInput = unsafeParse fileTreeP
-
 
 lineOf ∷ Parser a → Parser a
 lineOf p = p <* newline
@@ -35,25 +27,22 @@ fileTreeP = dirP
 
 dirP ∷ Parser FileTree
 dirP = do
-  Cd dirname <- cdP
-  Ls entries <- lsP
+  dirname <- cdP
+  entries <- lsP
   childDirs <- many (try dirP)
-  try (void cdUpP) <|> eof
+  try cdUpP <|> eof
 
   let children ∷ [FileTree]
-      children = mapMaybe (\case (D _)         -> Nothing
-                                 (F name size) -> Just $ FTFile name size)
-                          entries
-                <> childDirs
+      children = catMaybes entries <> childDirs
 
   pure $ FTDir dirname children
   where
-    cdP = lineOf $ Cd <$> (string "$ cd " *> fileNameP)
-    lsP = Ls <$> (lineOf (string "$ ls") *> some lsEntryP)
+    cdP = lineOf $ string "$ cd " *> fileNameP
+    lsP = lineOf (string "$ ls") *> many lsEntryP
     lsEntryP = lineOf $ try lsFileP <|> lsDirP
-    lsFileP = liftA2 (flip F) decimal (single ' ' *> fileNameP)
-    lsDirP = string "dir " *> (D <$> fileNameP)
-    cdUpP = lineOf $ CdUp <$ string "$ cd .."
+    lsFileP = Just <$> liftA2 (flip FTFile) decimal (single ' ' *> fileNameP)
+    lsDirP = Nothing <$ (string "dir " *> fileNameP)
+    cdUpP = void $ lineOf $ string "$ cd .."
     fileNameP = do 
       name <- T.pack <$> some (alphaNumChar <|> single '.' <|> single '/')
       guard (name /= "..")
