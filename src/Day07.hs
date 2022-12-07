@@ -52,29 +52,24 @@ dirP = do
 -- Solutions --
 ---------------
 
-nodes ∷ FileTree → [FileTree]
-nodes t@(FTDir _ ts) = t : concatMap nodes ts
-nodes t@(FTFile _ _) = [t]
-
 directories ∷ FileTree → [FileTree]
-directories = filter isDir . nodes where
-  isDir (FTDir _ _) = True
-  isDir _           = False
+directories (FTFile _ _) = []
+directories d@(FTDir _ children) = d : concatMap directories children
 
 ftSize ∷ FileTree → Int
 ftSize (FTDir _ contents) = sum (map ftSize contents)
 ftSize (FTFile _ size)    = size
 
+dirSizes ∷ FileTree → [Int]
+dirSizes = map ftSize . directories
+
 part1 ∷ FileTree → Int
-part1 = sum . filter (<=100000) . map ftSize . directories
+part1 = sum . filter (<=100000) . dirSizes
 
 part2 ∷ FileTree → Int
-part2 fileTree = minimum . filter (>=spaceToFree) $ sizes
+part2 fileTree = minimum . filter (>=spaceToFree) . dirSizes $ fileTree
   where
-    totalUsedSpace = ftSize fileTree
-    sizes = map ftSize . directories $ fileTree
-    targetUsedSpace = 70000000 - 30000000
-    spaceToFree = totalUsedSpace - targetUsedSpace
+    spaceToFree = ftSize fileTree - 70000000 + 30000000
 
 main ∷ IO ()
 main =
