@@ -14,7 +14,7 @@ import Data.Traversable (for)
 import Data.List (foldl1', minimum)
 
 
--- map of fully qualified paths to their contents
+-- map of fully absolute paths to their contents
 type FileTree = Map Text File
 
 data File = File { fsize :: Int }
@@ -91,7 +91,7 @@ buildTree session = fst $ execState (loop session) (Map.singleton "/" (Dir []), 
 
     insertFiles :: [LsEntry] -> State (FileTree, BreadCrumbs) ()
     insertFiles lsEntries = do
-      currentDirPath <- gets (fullyQualifiedPath . snd)
+      currentDirPath <- gets (breadCrumbsAbsPath . snd)
       -- traceM $ "inserting files in " <> show currentDirPath
       breadcrumbs <- gets snd
       -- traceM $ "breadcrumbs = " <> show breadcrumbs
@@ -111,8 +111,8 @@ buildTree session = fst $ execState (loop session) (Map.singleton "/" (Dir []), 
 "/" </> p2 = "/" <> p2
 p1 </> p2 = p1 <> "/" <> p2
 
-fullyQualifiedPath :: BreadCrumbs -> Text
-fullyQualifiedPath crumbs = foldl1' (</>) (reverse crumbs)
+breadCrumbsAbsPath :: BreadCrumbs -> Text
+breadCrumbsAbsPath crumbs = foldl1' (</>) (reverse crumbs)
 
 recursiveDirSize :: FileTree -> Text -> Int
 recursiveDirSize tree path = case Map.lookup path tree of
