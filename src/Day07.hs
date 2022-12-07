@@ -20,39 +20,14 @@ data LsEntry = F { name :: Text, size :: Int}
 -- Parsing --
 -------------
 parseInput ∷ Text → FileTree
-parseInput input = fileTree where
-  -- session = unsafeParse (some commandAndOutputP) input
-  fileTree = unsafeParse fileTreeP input
+parseInput = unsafeParse fileTreeP
 
-cdUpP ∷ Parser CommandAndOutput
-cdUpP = lineOf $ CdUp <$ string "$ cd .."
-
-cdP ∷ Parser CommandAndOutput
-cdP = lineOf $ Cd <$> (string "$ cd " *> fileNameP)
-
-lsP ∷ Parser CommandAndOutput
-lsP = Ls <$> (lineOf (string "$ ls") *> some lsEntryP)
-
-lsEntryP ∷ Parser LsEntry
-lsEntryP = lineOf $ try lsFileP <|> lsDirP
-
-lsFileP ∷ Parser LsEntry
-lsFileP = liftA2 (flip F) decimal (single ' ' *> fileNameP)
-
-lsDirP ∷ Parser LsEntry
-lsDirP = string "dir " *> (D <$> fileNameP)
-
-fileNameP ∷ Parser Text
-fileNameP = do 
-  name <- T.pack <$> some (alphaNumChar <|> single '.' <|> single '/')
-  guard (name /= "..")
-  pure name
 
 lineOf ∷ Parser a → Parser a
 lineOf p = p <* newline
 
 data FileTree = FTDir Text [FileTree]
-               | FTFile Text Int
+              | FTFile Text Int
   deriving Show
 
 fileTreeP ∷ Parser FileTree
@@ -72,6 +47,17 @@ dirP = do
                 <> childDirs
 
   pure $ FTDir dirname children
+  where
+    cdP = lineOf $ Cd <$> (string "$ cd " *> fileNameP)
+    lsP = Ls <$> (lineOf (string "$ ls") *> some lsEntryP)
+    lsEntryP = lineOf $ try lsFileP <|> lsDirP
+    lsFileP = liftA2 (flip F) decimal (single ' ' *> fileNameP)
+    lsDirP = string "dir " *> (D <$> fileNameP)
+    cdUpP = lineOf $ CdUp <$ string "$ cd .."
+    fileNameP = do 
+      name <- T.pack <$> some (alphaNumChar <|> single '.' <|> single '/')
+      guard (name /= "..")
+      pure name
 
 ---------------
 -- Solutions --
