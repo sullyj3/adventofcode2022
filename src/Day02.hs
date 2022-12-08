@@ -1,6 +1,7 @@
 module Day02 (main) where
-import qualified Data.Text.IO as T
-import           Utils        (parsePair, parsePair2, unreachable)
+import AOC.Parse
+import AOC.Parsers
+import Text.Megaparsec.Char
 
 class (Eq a, Enum a, Bounded a) ⇒ Cyclic a where
   succCyclic ∷ a → a
@@ -19,37 +20,37 @@ data Result = Loss | Draw | Win
 
 instance Cyclic RPS
 
-parseResult ∷ (Eq a, IsString a) ⇒ a → Result
-parseResult c = case c of
-  "X" → Loss
-  "Y" → Draw
-  "Z" → Win
-  _   → unreachable
+parseResult ∷ Parser Result
+parseResult = upperChar >>= \case
+  'X' → pure Loss
+  'Y' → pure Draw
+  'Z' → pure Win
+  c  → unexpected (Tokens $ pure c)
 
-parseRPS ∷ (Eq a, IsString a) ⇒ a → RPS
-parseRPS c = case c of
-  "A" → Rock
-  "B" → Paper
-  "C" → Scissors
-  "X" → Rock
-  "Y" → Paper
-  "Z" → Scissors
-  _   → unreachable
+
+parseRPS ∷ Parser RPS
+parseRPS = upperChar >>= \case
+  'A' → pure Rock
+  'B' → pure Paper
+  'C' → pure Scissors
+  'X' → pure Rock
+  'Y' → pure Paper
+  'Z' → pure Scissors
+  c  → unexpected (Tokens $ pure c)
 
 solvePart1 ∷ Text → Int
 solvePart1 = sum . map (uncurry scorePart1) . parsePart1
   where
-    parsePart1Line = parsePair parseRPS " "
+    -- parsePart1Line = parsePair parseRPS " "
 
     parsePart1 ∷ Text → [(RPS, RPS)]
-    parsePart1 = map parsePart1Line . lines
+    parsePart1 = unsafeParse $ linesOf (pairOf parseRPS " ")
     scorePart1 them us = resultScore (result us them) + shapeScore us
 
 solvePart2 ∷ Text → Int
 solvePart2 = sum . map (uncurry scorePart2) . parsePart2
   where
-    parsePart2Line = parsePair2 parseRPS parseResult " "
-    parsePart2 = map parsePart2Line . lines
+    parsePart2 = unsafeParse $ linesOf $ pairOfBoth parseRPS parseResult " "
 
     scorePart2 them desiredResult = shapeScore ourPlay + resultScore desiredResult
       where

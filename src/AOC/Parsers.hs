@@ -2,6 +2,7 @@
 module AOC.Parsers
   ( commaSeparatedInts
   , pairOf
+  , pairOfBoth
   , numPair
   , linesOf
   , numLine
@@ -17,6 +18,9 @@ commaSeparatedInts = decimal `sepBy` single ','
 
 pairOf ∷ Parser a → Text → Parser (a, a)
 pairOf p sep = liftA2 (,) p (string sep *> p)
+
+pairOfBoth ∷ Parser a → Parser b → Text → Parser (a, b)
+pairOfBoth p1 p2 sep = liftA2 (,) (p1 <* string sep) p2
 
 numPair ∷ Num a ⇒ Text → Parser (a, a)
 numPair = pairOf decimal
