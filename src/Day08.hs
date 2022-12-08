@@ -51,32 +51,31 @@ allVisible forest = zip2dWith (||) hVisibles vVisibles
 --
 -- Part 2
 --
-viewingDistance ∷ Int → [Int] → Int
-viewingDistance currHeight = go
+
+part2 ∷ Forest → Int
+part2 (list2vec2d -> forest) =
+  maximum . map score $ liftA2 (,) [0..height-1] [0..width-1]
   where
-    go [] = 0
-    go (n:ns)
-      | n >= currHeight = 1
-      | otherwise = 1 + go ns
-
-score ∷ Vector (Vector Int) → (Int, Int) → Int
-score forest (i, j) =
-  product . map (viewingDistance heightHere . map getTree) $ [up, down, left, right]
-  where
-    heightHere = getTree (i, j)
-    getTree (i', j') = forest ! i' ! j'
-
-    up = map (, j) [i-1,i-2..0]
-    down = map (, j) [i+1,i+2..height - 1]
-    left = map (i, ) [j-1,j-2..0]
-    right = map (i, ) [j+1,j+2..width - 1]
-
     height = Vec.length forest
     width = Vec.length (forest ! 0)
 
-part2 ∷ Forest → Int
-part2 (list2vec2d -> forest) = maximum . map (score forest) $ 
-  [ (i,j) | i <- [0..Vec.length forest - 1], j <- [0..Vec.length forest - 1]]
+    getTree (i', j') = forest ! i' ! j'
+
+    score ∷ (Int, Int) → Int
+    score (i, j) = product . map (viewingDistance . map getTree) $ [up, down, left, right]
+      where
+        heightHere = getTree (i, j)
+
+        up = map (, j) [i-1,i-2..0]
+        down = map (, j) [i+1,i+2..height - 1]
+        left = map (i, ) [j-1,j-2..0]
+        right = map (i, ) [j+1,j+2..width - 1]
+
+        viewingDistance ∷ [Int] → Int
+        viewingDistance = \case
+          [] -> 0
+          (n:ns) | n >= heightHere -> 1
+                 | otherwise -> 1 + viewingDistance ns
 
 list2vec2d ∷ [[a]] → Vector (Vector a)
 list2vec2d = Vec.fromList . map Vec.fromList
