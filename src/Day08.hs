@@ -31,7 +31,7 @@ parseInput = unsafeParse (linesOf (some $ digitToInt <$> digitChar))
 part1 ∷ Forest → Int
 part1 = sum . map (count id) . allVisible
 
-isVisibleFromLeft ∷ [Int] -> [Bool]
+isVisibleFromLeft ∷ [Int] → [Bool]
 isVisibleFromLeft = mapWithState (\n currMax -> (currMax < n, max n currMax)) minBound
 
 isVisibleFromEitherSide ∷ [Int] → [Bool]
@@ -66,10 +66,10 @@ part2 (list2vec2d -> forest) =
       where
         heightHere = getTree (i, j)
 
-        up = map (, j) [i-1,i-2..0]
-        down = map (, j) [i+1,i+2..height - 1]
-        left = map (i, ) [j-1,j-2..0]
-        right = map (i, ) [j+1,j+2..width - 1]
+        up    = map (,j) [i-1, i-2 .. 0]
+        down  = map (,j) [i+1, i+2 .. height-1]
+        left  = map (i,) [j-1, j-2 .. 0]
+        right = map (i,) [j+1, j+2 .. width-1]
 
         viewingDistance ∷ [Int] → Int
         viewingDistance = \case
