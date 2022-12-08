@@ -10,7 +10,7 @@ import           Data.Vector          (Vector, (!))
 import qualified Data.Vector          as Vec
 import           Prelude              hiding (some)
 import           Text.Megaparsec.Char (digitChar)
-import           Utils                (count)
+import           Utils                (count, mapWithState)
 
 type Forest = [[Int]]
 
@@ -26,10 +26,7 @@ parseInput = unsafeParse (linesOf (some $ digitToInt <$> digitChar))
 ---------------
 
 isVisibleFromLeft ∷ [Int] -> [Bool]
-isVisibleFromLeft = flip evalState minBound . traverse \i -> do
-  currMax <- get
-  modify (max i)
-  pure $ currMax < i
+isVisibleFromLeft = mapWithState (\n currMax -> (currMax < n, max n currMax)) minBound
 
 isVisibleFromEitherSide ∷ [Int] → [Bool]
 isVisibleFromEitherSide ns = zipWith (||)
