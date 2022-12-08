@@ -12,15 +12,16 @@ import           AOC.Parse
 import           Text.Megaparsec.Char
 import Prelude hiding (many, some)
 import Data.Char (isDigit)
+import Utils (zipA)
 
 commaSeparatedInts ∷ Parser [Int]
 commaSeparatedInts = decimal `sepBy` single ','
 
 pairOf ∷ Parser a → Text → Parser (a, a)
-pairOf p sep = liftA2 (,) p (string sep *> p)
+pairOf p sep = p `zipA` (string sep *> p)
 
 pairOfBoth ∷ Parser a → Parser b → Text → Parser (a, b)
-pairOfBoth p1 p2 sep = liftA2 (,) (p1 <* string sep) p2
+pairOfBoth p1 p2 sep = p1 `zipA` (string sep *> p2)
 
 numPair ∷ Num a ⇒ Text → Parser (a, a)
 numPair = pairOf decimal

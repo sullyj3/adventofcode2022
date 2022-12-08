@@ -100,3 +100,6 @@ prettyMap = unlines . map (\(k,v) -> tShow k <> " -> " <> tShow v) . Map.toList
 -- or alternatively a stateful traverse
 mapWithState ∷ (i -> s -> (o, s)) -> s -> [i] -> [o]
 mapWithState f initialState = flip evalState initialState . traverse (state . f)
+
+zipA ∷ Applicative f ⇒ f a → f b → f (a,b)
+zipA = liftA2 (,)

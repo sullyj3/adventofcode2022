@@ -10,7 +10,7 @@ import           Data.Vector          (Vector, (!))
 import qualified Data.Vector          as Vec
 import           Prelude              hiding (some)
 import           Text.Megaparsec.Char (digitChar)
-import           Utils                (count, mapWithState)
+import           Utils                (count, mapWithState, zipA)
 
 type Forest = [[Int]]
 
@@ -53,8 +53,7 @@ allVisible forest = zip2dWith (||) hVisibles vVisibles
 --
 
 part2 ∷ Forest → Int
-part2 (list2vec2d -> forest) =
-  maximum . map score $ liftA2 (,) [0..height-1] [0..width-1]
+part2 (list2vec2d -> forest) = maximum . map score $ [0..height-1] `zipA` [0..width-1]
   where
     height = Vec.length forest
     width = Vec.length (forest ! 0)
