@@ -59,8 +59,8 @@ viewingDistance currHeight = go
       | n >= currHeight = 1
       | otherwise = 1 + go ns
 
-score ∷ (Int, Int) → Vector (Vector Int) → Int
-score (i, j) forest =
+score ∷ Vector (Vector Int) → (Int, Int) → Int
+score forest (i, j) =
   product . map (viewingDistance heightHere . map getTree) $ [up, down, left, right]
   where
     heightHere = getTree (i, j)
@@ -75,10 +75,8 @@ score (i, j) forest =
     width = Vec.length (forest ! 0)
 
 part2 ∷ Forest → Int
-part2 (list2vec2d -> forest) = maximum do
-  i <- [0..Vec.length forest - 1]
-  j <- [0..Vec.length forest - 1]
-  pure $ score (i, j) forest
+part2 (list2vec2d -> forest) = maximum . map (score forest) $ 
+  [ (i,j) | i <- [0..Vec.length forest - 1], j <- [0..Vec.length forest - 1]]
 
 list2vec2d ∷ [[a]] → Vector (Vector a)
 list2vec2d = Vec.fromList . map Vec.fromList
