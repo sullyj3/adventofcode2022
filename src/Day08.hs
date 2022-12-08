@@ -64,15 +64,21 @@ viewingDistance currHeight = go
       | otherwise = 1 + go ns
 
 
--- part1 :: Forest -> Int
+--
+-- Part 1
+--
+part1 :: Forest -> Int
 part1 = sum . map (count id) . allVisible
 
+--
+-- Part 2
+--
 score :: (Int, Int) -> Vector (Vector Int) -> Int
 score (i, j) forest = 
-  product . map (viewingDistance heightHere . map ix2d) $ [up, down, left, right]
+  product . map (viewingDistance heightHere . map getTree) $ [up, down, left, right]
   where 
-    heightHere = ix2d (i, j)
-    ix2d (i', j') = forest ! i' ! j'
+    heightHere = getTree (i, j)
+    getTree (i', j') = forest ! i' ! j'
 
     up = map (, j) [i-1,i-2..0]
     down = map (, j) [i+1,i+2..height - 1]
@@ -82,7 +88,7 @@ score (i, j) forest =
     height = Vec.length forest
     width = Vec.length (forest ! 0)
 
-
+part2 :: Forest -> Int
 part2 (list2vec2d -> forest) = maximum do
   i <- [0..Vec.length forest - 1]
   j <- [0..Vec.length forest - 1]
@@ -93,14 +99,7 @@ list2vec2d = Vec.fromList . map Vec.fromList
 
 main ∷ IO ()
 main = do
-  -- other testing here
-  -- putTextLn exampleInput
-  -- putTextLn ""
-  -- putTextLn (prettyVisible . allVisible . parseInput $ exampleInput)
-
-  aocSinglePartMain "inputs/08.txt" exampleInput parseInput part2
-
-  -- aocMain "inputs/08.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
+  aocMain "inputs/08.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
 
 exampleInput :: Text
 exampleInput = toText @String [str|30373
