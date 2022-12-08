@@ -49,6 +49,7 @@ dependencies:
   - Clipboard
   - PyF
   - recursion-schemes
+  - vector
 
 ghc-options:
 - -Wall
