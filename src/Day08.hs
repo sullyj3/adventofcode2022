@@ -25,6 +25,12 @@ parseInput = unsafeParse (linesOf (some $ digitToInt <$> digitChar))
 -- Solutions --
 ---------------
 
+--
+-- Part 1
+--
+part1 ∷ Forest → Int
+part1 = sum . map (count id) . allVisible
+
 isVisibleFromLeft ∷ [Int] -> [Bool]
 isVisibleFromLeft = mapWithState (\n currMax -> (currMax < n, max n currMax)) minBound
 
@@ -42,6 +48,9 @@ allVisible forest = zip2dWith (||) hVisibles vVisibles
     zip2dWith ∷ (a → b → c) → [[a]] → [[b]] → [[c]]
     zip2dWith f = zipWith (zipWith f)
 
+--
+-- Part 2
+--
 viewingDistance ∷ Int → [Int] → Int
 viewingDistance currHeight = go
   where
@@ -50,15 +59,6 @@ viewingDistance currHeight = go
       | n >= currHeight = 1
       | otherwise = 1 + go ns
 
---
--- Part 1
---
-part1 ∷ Forest → Int
-part1 = sum . map (count id) . allVisible
-
---
--- Part 2
---
 score ∷ (Int, Int) → Vector (Vector Int) → Int
 score (i, j) forest =
   product . map (viewingDistance heightHere . map getTree) $ [up, down, left, right]
