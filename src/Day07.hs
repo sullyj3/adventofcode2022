@@ -29,18 +29,14 @@ fileTreeP = dirP
 
 dirP ∷ Parser FileTree
 dirP = do
-  _ <- cdP
-  entries <- lsP
+  cdP
+  childFiles <- lsP
   childDirs <- many (try dirP)
   try cdUpP <|> eof
-
-  let children ∷ [FileTree]
-      children = catMaybes entries <> childDirs
-
-  pure $ Branch children
+  pure $ Branch (childFiles <> childDirs)
   where
-    cdP = lineOf $ string "$ cd " *> fileNameP
-    lsP = lineOf (string "$ ls") *> many lsEntryP
+    cdP = void $ lineOf $ string "$ cd " *> fileNameP
+    lsP = lineOf (string "$ ls") *> (catMaybes <$> many lsEntryP)
     lsEntryP = lineOf $ try lsFileP <|> lsDirP
     lsFileP = Just <$> (Leaf <$> decimal) <* (single ' ' *> fileNameP)
     lsDirP = Nothing <$ (string "dir " *> fileNameP)
