@@ -25,13 +25,11 @@ parseInput = unsafeParse (linesOf (some $ digitToInt <$> digitChar))
 -- Solutions --
 ---------------
 
-isVisibleFromLeft ∷ [Int] → [Bool]
-isVisibleFromLeft = go minBound
-  where
-    go _ [] = []
-    go currMax (n:ns)
-      | currMax >= n = False : go currMax ns
-      | otherwise = True : go n ns
+isVisibleFromLeft ∷ [Int] -> [Bool]
+isVisibleFromLeft = flip evalState minBound . traverse \i -> do
+  currMax <- get
+  modify (max i)
+  pure $ currMax < i
 
 isVisibleFromEitherSide ∷ [Int] → [Bool]
 isVisibleFromEitherSide ns = zipWith (||)
@@ -54,7 +52,6 @@ viewingDistance currHeight = go
     go (n:ns)
       | n >= currHeight = 1
       | otherwise = 1 + go ns
-
 
 --
 -- Part 1
