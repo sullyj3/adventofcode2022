@@ -21,12 +21,14 @@ default-extensions:
 - UnicodeSyntax
 - LambdaCase
 - OverloadedStrings
-# records
-- RecordWildCards
-- OverloadedRecordDot
 - NoFieldSelectors
 - TemplateHaskell
 - QuasiQuotes
+- BlockArguments
+- ViewPatterns
+# records
+- RecordWildCards
+- OverloadedRecordDot
 
 dependencies:
   - name: base
@@ -46,6 +48,7 @@ dependencies:
   - bifunctors
   - Clipboard
   - PyF
+  - recursion-schemes
 
 ghc-options:
 - -Wall
