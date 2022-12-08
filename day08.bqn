@@ -8,7 +8,7 @@ Part1 ← {
   top ← MarkVisible˘⌾⍉ 𝕩
   bottom ← (MarkVisible⌾⌽)˘⌾⍉ 𝕩
 
-  +´⥊∨´ ⟨left,right,top,bottom⟩
+  +´⥊∨´ left‿right‿top‿bottom
 }
 
 realInput ← ParseInput •FLines "inputs/08.txt"
