@@ -32,7 +32,7 @@ part1 ∷ Forest → Int
 part1 = sum . map (count id) . allVisible
 
 isVisibleFromLeft ∷ [Int] → [Bool]
-isVisibleFromLeft = mapWithState (\n currMax -> (currMax < n, max n currMax)) minBound
+isVisibleFromLeft = mapWithState (\currMax n -> (max n currMax, currMax < n)) minBound
 
 isVisibleFromEitherSide ∷ [Int] → [Bool]
 isVisibleFromEitherSide ns = zipWith (||)

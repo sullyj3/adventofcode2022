@@ -96,10 +96,8 @@ allDistinct = not . anySame
 prettyMap ∷ (Show k, Show v) ⇒ Map k v → Text
 prettyMap = unlines . map (\(k,v) -> tShow k <> " -> " <> tShow v) . Map.toList
 
--- a kind of restricted fold.
--- or alternatively a stateful traverse
-mapWithState ∷ (i -> s -> (o, s)) -> s -> [i] -> [o]
-mapWithState f initialState = flip evalState initialState . traverse (state . f)
+mapWithState ∷ (s -> i -> (s, o)) -> s -> [i] -> [o]
+mapWithState f s = snd . mapAccumL f s
 
 zipA ∷ Applicative f ⇒ f a → f b → f (a,b)
 zipA = liftA2 (,)
