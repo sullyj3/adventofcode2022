@@ -96,8 +96,5 @@ allDistinct = not . anySame
 prettyMap ∷ (Show k, Show v) ⇒ Map k v → Text
 prettyMap = unlines . map (\(k,v) -> tShow k <> " -> " <> tShow v) . Map.toList
 
-mapWithState ∷ (s -> i -> (s, o)) -> s -> [i] -> [o]
-mapWithState f s = snd . mapAccumL f s
-
 zipA ∷ Applicative f ⇒ f a → f b → f (a,b)
 zipA = liftA2 (,)

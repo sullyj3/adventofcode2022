@@ -10,7 +10,7 @@ import           Data.Vector          (Vector, (!))
 import qualified Data.Vector          as Vec
 import           Prelude              hiding (some)
 import           Text.Megaparsec.Char (digitChar)
-import           Utils                (count, mapWithState, zipA)
+import           Utils                (count, zipA)
 
 type Forest = [[Int]]
 
@@ -32,7 +32,7 @@ part1 ∷ Forest → Int
 part1 = sum . map (count id) . allVisible
 
 isVisibleFromLeft ∷ [Int] → [Bool]
-isVisibleFromLeft = mapWithState (\currMax n -> (max n currMax, currMax < n)) minBound
+isVisibleFromLeft = snd . mapAccumL (\currMax n -> (max n currMax, currMax < n)) minBound
 
 isVisibleFromEitherSide ∷ [Int] → [Bool]
 isVisibleFromEitherSide ns = zipWith (||)
