@@ -4,6 +4,8 @@ import           AOC
 import           AOC.Parse            hiding (State)
 import           AOC.Parsers
 import qualified Data.Set             as Set
+import           Data.Strict          (Pair ((:!:)))
+import qualified Data.Strict          as Strict
 import qualified Relude.Unsafe        as Unsafe
 import           Text.Megaparsec.Char (upperChar)
 import           Utils                (CardinalDir (..), (.:))
@@ -47,8 +49,9 @@ updateRope = state . curry \case
     where
       (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
-executeInstruction ∷ (Rope, VisitedSet) → Instruction → (Rope, VisitedSet)
-executeInstruction (rope, visited) instruction  = (rope', Set.fromList tailLocations <> visited)
+executeInstruction ∷ Pair Rope VisitedSet → Instruction → Pair Rope VisitedSet
+executeInstruction (rope :!: visited) instruction =
+  rope' :!: Set.fromList tailLocations <> visited
   where
     instructionOffsets ∷ Instruction → [Coord]
     instructionOffsets (dir, steps) = take steps . drop 1 $ iterate (move1Cardinal dir) 0
@@ -59,9 +62,9 @@ executeInstruction (rope, visited) instruction  = (rope', Set.fromList tailLocat
              $ instructionOffsets instruction
 
 tailVisitCount ∷ Int → [Instruction] → Int
-tailVisitCount ropeLength = Set.size 
-  . snd 
-  . foldl' executeInstruction (replicate ropeLength 0, mempty)
+tailVisitCount ropeLength = Set.size
+  . Strict.snd
+  . foldl' executeInstruction (replicate ropeLength 0 :!: mempty)
 
 part1 ∷ [Instruction] → Int
 part1 = tailVisitCount 2
