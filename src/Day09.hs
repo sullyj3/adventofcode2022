@@ -6,7 +6,7 @@ import           AOC.Parsers
 import qualified Data.Set             as Set
 import qualified Relude.Unsafe        as Unsafe
 import           Text.Megaparsec.Char (upperChar)
-import Utils ((.:))
+import           Utils                ((.:))
 
 data Direction = U | D | L | R deriving (Show, Eq)
 type Coord = (Int, Int)
@@ -30,10 +30,10 @@ parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
 ---------------
 -- Solutions --
 ---------------
-(<+>) :: (Num a, Num b) => (a, b) -> (a, b) -> (a, b)
+(<+>) ∷ (Num a, Num b) ⇒ (a, b) → (a, b) → (a, b)
 (<+>) (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
 
-(<->) :: (Num a, Num b) => (a, b) -> (a, b) -> (a, b)
+(<->) ∷ (Num a, Num b) ⇒ (a, b) → (a, b) → (a, b)
 (<->) (x1, y1) (x2, y2) = (x1 - x2, y1 - y2)
 
 updateChild ∷ Coord → Coord → Coord
@@ -57,12 +57,12 @@ executeInstruction instruction = do
 
   let oldHead = Unsafe.head rope
       (tailLocations, rope') = flip runState rope $
-        traverse (state . updateRope . (oldHead <+>)) 
-               $ instructionOffsets instruction 
+        traverse (state . updateRope . (oldHead <+>))
+               $ instructionOffsets instruction
 
   put (rope', Set.fromList tailLocations <> visited)
   where
-    instructionOffsets :: (Direction, Int) -> [Coord]
+    instructionOffsets ∷ (Direction, Int) → [Coord]
     instructionOffsets (dir, steps) = case dir of
       U -> [ (0, y) | y <- [1 .. steps] ]
       D -> [ (0, y) | y <- [-1, -2 .. -steps] ]
