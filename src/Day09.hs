@@ -50,16 +50,15 @@ updateRope = state . curry \case
       (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
 executeInstruction ∷ Pair Rope VisitedSet → Instruction → Pair Rope VisitedSet
-executeInstruction (rope :!: visited) instruction =
+executeInstruction (rope :!: visited) (dir, steps) =
   rope' :!: Set.fromList tailLocations <> visited
   where
-    instructionOffsets ∷ Instruction → [Coord]
-    instructionOffsets (dir, steps) = take steps . drop 1 $ iterate (move1Cardinal dir) 0
+    instructionOffsets ∷ [Coord]
+    instructionOffsets = take steps . drop 1 $ iterate (move1Cardinal dir) 0
 
     oldHead = Unsafe.head rope
     (tailLocations, rope') = flip runState rope $
-      traverse (updateRope . (oldHead +))
-             $ instructionOffsets instruction
+      traverse (updateRope . (oldHead +)) instructionOffsets
 
 tailVisitCount ∷ Int → [Instruction] → Int
 tailVisitCount ropeLength = Set.size
