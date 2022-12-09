@@ -37,9 +37,9 @@ parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
 (<->) (x1, y1) (x2, y2) = (x1 - x2, y1 - y2)
 
 updateChild ∷ Coord → Coord → Coord
-updateChild newParent oldChild@(ocx, ocy)
+updateChild newParent oldChild
   | touching = oldChild
-  | otherwise = (ocx + signum offsetX, ocy + signum offsetY)
+  | otherwise = oldChild <+> (signum offsetX, signum offsetY)
   where
     (offsetX, offsetY) = newParent <-> oldChild
     touching = max (abs offsetX) (abs offsetY) <= 1
