@@ -38,11 +38,10 @@ updateChild newParent oldChild
     touching = newParent `chebyshevDist` oldChild <= 1
 
 -- returns the new location of the tail
---
 updateRope :: Coord -> State Rope Coord
-updateRope = state . go where
-  go _ [] = error "updateRope: empty rope"
-  go newHead (_:rope) = (newTail, newHead:rope')
+updateRope = state . curry \case
+  (_______, []    ) -> error "updateRope: empty rope"
+  (newHead, _:rope) -> (newTail, newHead:rope')
     where
       (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
@@ -52,7 +51,7 @@ executeInstruction instruction = do
 
   let oldHead = Unsafe.head rope
       (tailLocations, rope') = flip runState rope $
-        traverse (state . updateRope . (oldHead +))
+        traverse (updateRope . (oldHead +))
                $ instructionOffsets instruction
 
   put (rope', Set.fromList tailLocations <> visited)
