@@ -50,6 +50,7 @@ dependencies:
   - PyF
   - recursion-schemes
   - vector
+  - massiv
 
 ghc-options:
 - -Wall
