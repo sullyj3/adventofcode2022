@@ -6,11 +6,14 @@ import           AOC.Parsers
 import           PyF
 import Text.Megaparsec.Char (upperChar)
 import qualified Data.Set as Set
+import Data.Tuple.Optics (Field1(_1))
+import qualified Relude.Unsafe as Unsafe
+import Data.Traversable (for)
 
 data Direction = U | D | L | R deriving (Show, Eq)
-newtype Head = Head { unHead :: (Int, Int)} deriving (Show, Eq, Ord)
-newtype Tail = Tail { unTail :: (Int, Int)} deriving (Show, Eq, Ord)
-type VisitedSet = Set Tail
+type Coord = (Int, Int)
+type VisitedSet = Set Coord
+type Rope = [Coord]
 
 -------------
 -- Parsing --
@@ -31,29 +34,38 @@ parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
 ---------------
 -- Solutions --
 ---------------
-touching :: Head -> Tail -> Bool
-touching (Head (x1, y1)) (Tail (x2, y2)) = max (abs (x1 - x2)) (abs (y1 - y2)) <= 1
+updateChild :: Coord -> Coord -> Coord
+updateChild newParent oldChild
+  | touching = oldChild
+  -- not touching
+  -- same row
+  | offsetY == 0 && abs offsetX >= 2 = (ocx + signum offsetX, ocy)
+  -- same column
+  | offsetX == 0 && abs offsetY >= 2 = (ocx, ocy + signum offsetY)
+  -- not same row or column, need to move diagonally
+  | otherwise = (ocx + signum offsetX, ocy + signum offsetY)
+  where
+    (npx, npy) = newParent
+    (ocx, ocy) = oldChild
+    (offsetX, offsetY) = (npx - ocx, npy - ocy)
+    touching = max (abs (npx - ocx)) (abs (npy - ocy)) <= 1
 
-updateTail :: Head -> Head -> Tail -> Tail
-updateTail oldHead newHead oldTail
-  | touching newHead oldTail = oldTail
-  | otherwise = let Head h = oldHead in Tail h
+-- returns the new location of the tail
+updateRope :: Coord -> Rope -> (Coord, Rope)
+updateRope _______ [] = error "updateRope: empty rope"
+updateRope newHead (oldHead:knots) = (newTail, newHead:knots')
+  where
+    ((_oldTail, newTail), knots') = mapAccumL go (oldHead, newHead) knots
 
-headMovesTo :: (Int, Int) -> State (Head, Tail) Tail
-headMovesTo (x, y) = do
-  (oldHead, oldTail) <- get
-  let newHead = Head (x, y)
-      newTail = updateTail oldHead newHead oldTail
-  -- traceM $ "head: " <> show oldHead.unHead <> " -> " <> show newHead.unHead
-  --      <> ", tail: " <> show oldTail.unTail <> " -> " <> show newTail.unTail
-  put (newHead, newTail)
-  pure newTail
+    -- Sorry
+    go :: (Coord, Coord) -> Coord -> ((Coord, Coord), Coord)
+    go (oldParent, newParent) oldChild = ((oldChild, newChild) , newChild)
+        where newChild = updateChild newParent oldChild
 
-executeInstruction :: (Direction, Int) -> State (Head, Tail, VisitedSet) ()
+executeInstruction :: MonadState (Rope, VisitedSet) m => (Direction, Int) -> m ()
 executeInstruction (dir, steps) = do
-  -- traceM $ "executing instruction: " <> show dir <> " " <> show steps
-  (h@(Head (hx, hy)), t, visited) <- get
-  -- traceM $ "head is at " <> show h <> ", tail is at " <> show t
+  (rope, visited) <- get
+  let (hx, hy) = Unsafe.head rope
 
   let headVisits :: [(Int, Int)]
       headVisits = case dir of
@@ -63,24 +75,55 @@ executeInstruction (dir, steps) = do
         L -> [ (x, hy) | x <- [hx-1,hx-2 .. hx-steps] ]
   -- traceM $ "head will visit: " <> show headVisits
 
-  let (tailLocations, (h', t')) = flip runState (h, t) . traverse headMovesTo $ headVisits
-  put (h', t', Set.fromList tailLocations <> visited)
+  let (tailLocations, rope') = flip runState rope $ for headVisits \loc -> do
+        currRope <- get
+        -- traceM $ "curr rope is " <> show currRope
+        state $ updateRope loc
+  put (rope', Set.fromList tailLocations <> visited)
 
 
 part1 :: [(Direction, Int)] -> Int
 part1 instructions = Set.size visited
   where 
-    (_,_,visited) = flip execState (Head (0,0), Tail (0,0), Set.singleton (Tail (0,0)))
+    (_,visited) = flip execState ([(0,0), (0,0)], Set.singleton (0,0))
                     . traverse executeInstruction $ instructions
 
+part2 :: [(Direction, Int)] -> Int
+part2 instructions = Set.size visited
+  where 
+    initialRope = replicate 10 (0,0)
+    (_,visited) = flip execState (initialRope, Set.singleton (0,0))
+                    . traverse executeInstruction $ instructions
 
-part2 = const ()
+part2StepByStep :: [(Direction, Int)] -> IO Int
+part2StepByStep instructions = do
+  let initialRope = replicate 10 (0,0)
+      initialVisited = Set.singleton (0,0)
+  visited <- flip evalStateT (initialRope, initialVisited) $ do
+    liftIO $ putStrLn "Starting"
+    liftIO $ putStrLn $ "Instructions are " <> show instructions
+    for_ instructions \instruction -> do
+      (rope, visited) <- get
+      liftIO $ putStrLn $ "Rope is " <> show rope
+      liftIO $ putStrLn $ "Visited is " <> show visited
+      liftIO $ putStrLn $ "Executing instruction " <> show instruction
+      executeInstruction instruction
+      (rope', visited') <- get
+      liftIO $ putStrLn $ "Rope is now " <> show rope'
+      liftIO $ putStrLn $ "Visited is now " <> show visited'
+      liftIO $ putStrLn "press enter to continue"
+      liftIO getLine
+    gets snd
+  pure $ Set.size visited
+
 
 main ∷ IO ()
 main = do
   -- other testing here
   -- aocSinglePartExample parseInput part1 exampleInput
-  aocSinglePartMain "inputs/09.txt" exampleInput parseInput part1
+  aocSinglePartMain "inputs/09.txt" largerExample parseInput part2
+  -- _ <- part2StepByStep (parseInput exampleInput)
+  pure ()
 
   -- aocMain "inputs/09.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
 
@@ -94,3 +137,12 @@ D 1
 L 5
 R 2|]
 
+largerExample :: Text
+largerExample = toText @String [str|R 5
+U 8
+L 8
+D 3
+R 17
+D 10
+L 25
+U 20|]
