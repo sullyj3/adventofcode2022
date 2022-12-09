@@ -6,7 +6,7 @@ import           AOC.Parsers
 import qualified Data.Set             as Set
 import qualified Relude.Unsafe        as Unsafe
 import           Text.Megaparsec.Char (upperChar)
-import           Utils                ((.:), Coord, CardinalDir (..), (<+>), (<->))
+import           Utils                ((.:), Coord, CardinalDir (..), (<+>), (<->), move1Cardinal)
 
 type VisitedSet = Set Coord
 type Rope = [Coord]
@@ -55,11 +55,7 @@ executeInstruction instruction = do
   put (rope', Set.fromList tailLocations <> visited)
   where
     instructionOffsets ∷ (CardinalDir, Int) → [Coord]
-    instructionOffsets (dir, steps) = case dir of
-      U -> [ (0, y) | y <- [1 .. steps] ]
-      D -> [ (0, y) | y <- [-1, -2 .. -steps] ]
-      R -> [ (x, 0) | x <- [1 .. steps] ]
-      L -> [ (x, 0) | x <- [-1, -2 .. -steps] ]
+    instructionOffsets (dir, steps) = take steps . drop 1 $ iterate (move1Cardinal dir) (0,0)
 
 tailVisits ∷ Int → [(CardinalDir, Int)] → Int
 tailVisits ropeLength instructions = Set.size visited
