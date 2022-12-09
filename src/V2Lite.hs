@@ -30,12 +30,21 @@ instance Num a ⇒ Num (V2 a) where
 unvurry ∷ (a → a → b) → V2 a → b
 unvurry f (V2 x y) = f x y
 
+scale ∷ Num a ⇒ a → V2 a → V2 a
+scale k = fmap (k *)
+
+(*^) ∷ Num a ⇒ a → V2 a → V2 a
+(*^) = scale
+
+unitCardinal ∷ CardinalDir → V2 Int
+unitCardinal = \case
+  U → V2 0    1
+  D → V2 0    (-1)
+  L → V2 (-1) 0
+  R → V2 1    0
+
 moveCardinal ∷ Int → CardinalDir → V2 Int → V2 Int
-moveCardinal n dir x0 = case dir of
-  U → x0 + V2 0    n
-  D → x0 + V2 0    (-n)
-  L → x0 + V2 (-n) 0
-  R → x0 + V2 n    0
+moveCardinal n dir x0 = x0 + n *^ unitCardinal dir
 
 move1Cardinal ∷ CardinalDir → V2 Int → V2 Int
 move1Cardinal = moveCardinal 1
