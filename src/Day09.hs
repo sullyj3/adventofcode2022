@@ -38,11 +38,13 @@ updateChild newParent oldChild
     touching = newParent `chebyshevDist` oldChild <= 1
 
 -- returns the new location of the tail
-updateRope ∷ Coord → Rope → (Coord, Rope)
-updateRope _______ [] = error "updateRope: empty rope"
-updateRope newHead (_:rope) = (newTail, newHead:rope')
-  where
-    (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
+--
+updateRope :: Coord -> State Rope Coord
+updateRope = state . go where
+  go _ [] = error "updateRope: empty rope"
+  go newHead (_:rope) = (newTail, newHead:rope')
+    where
+      (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
 executeInstruction ∷ (CardinalDir, Int) → State (Rope, VisitedSet) ()
 executeInstruction instruction = do
