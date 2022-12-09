@@ -6,20 +6,18 @@ import           AOC.Parsers
 import qualified Data.Set             as Set
 import qualified Relude.Unsafe        as Unsafe
 import           Text.Megaparsec.Char (upperChar)
-import           Utils                ((.:))
+import           Utils                ((.:), Coord, CardinalDir (..), (<+>), (<->))
 
-data Direction = U | D | L | R deriving (Show, Eq)
-type Coord = (Int, Int)
 type VisitedSet = Set Coord
 type Rope = [Coord]
 
 -------------
 -- Parsing --
 -------------
-parseInput ∷ Text → [(Direction, Int)]
+parseInput ∷ Text → [(CardinalDir, Int)]
 parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
   where
-    direction ∷ Parser Direction
+    direction ∷ Parser CardinalDir
     direction = upperChar >>= \case
       'U' -> pure U
       'D' -> pure D
@@ -30,12 +28,6 @@ parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
 ---------------
 -- Solutions --
 ---------------
-(<+>) ∷ (Num a, Num b) ⇒ (a, b) → (a, b) → (a, b)
-(<+>) (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
-
-(<->) ∷ (Num a, Num b) ⇒ (a, b) → (a, b) → (a, b)
-(<->) (x1, y1) (x2, y2) = (x1 - x2, y1 - y2)
-
 updateChild ∷ Coord → Coord → Coord
 updateChild newParent oldChild
   | touching = oldChild
@@ -51,7 +43,7 @@ updateRope newHead (_:rope) = (newTail, newHead:rope')
   where
     (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
-executeInstruction ∷ MonadState (Rope, VisitedSet) m ⇒ (Direction, Int) → m ()
+executeInstruction ∷ MonadState (Rope, VisitedSet) m ⇒ (CardinalDir, Int) → m ()
 executeInstruction instruction = do
   (rope, visited) <- get
 
@@ -62,23 +54,23 @@ executeInstruction instruction = do
 
   put (rope', Set.fromList tailLocations <> visited)
   where
-    instructionOffsets ∷ (Direction, Int) → [Coord]
+    instructionOffsets ∷ (CardinalDir, Int) → [Coord]
     instructionOffsets (dir, steps) = case dir of
       U -> [ (0, y) | y <- [1 .. steps] ]
       D -> [ (0, y) | y <- [-1, -2 .. -steps] ]
       R -> [ (x, 0) | x <- [1 .. steps] ]
       L -> [ (x, 0) | x <- [-1, -2 .. -steps] ]
 
-tailVisits ∷ Int → [(Direction, Int)] → Int
+tailVisits ∷ Int → [(CardinalDir, Int)] → Int
 tailVisits ropeLength instructions = Set.size visited
   where
     (_,visited) = flip execState (replicate ropeLength (0,0), Set.singleton (0,0))
                     . traverse executeInstruction $ instructions
 
-part1 ∷ [(Direction, Int)] → Int
+part1 ∷ [(CardinalDir, Int)] → Int
 part1 = tailVisits 2
 
-part2 ∷ [(Direction, Int)] → Int
+part2 ∷ [(CardinalDir, Int)] → Int
 part2 = tailVisits 10
 
 main ∷ IO ()

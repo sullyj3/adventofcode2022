@@ -102,3 +102,23 @@ zipA = liftA2 (,)
 -- Known as "Atop" in BQN
 (.:) ∷ (c → d) → (a → b → c) → a → b → d
 (.:) = (.) . (.)
+
+data CardinalDir = U | D | L | R deriving (Show, Eq)
+type Coord = (Int, Int)
+
+(<+>) ∷ (Num a, Num b) ⇒ (a, b) → (a, b) → (a, b)
+(<+>) (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
+
+(<->) ∷ (Num a, Num b) ⇒ (a, b) → (a, b) → (a, b)
+(<->) (x1, y1) (x2, y2) = (x1 - x2, y1 - y2)
+
+moveCardinal :: Int -> CardinalDir -> Coord -> Coord
+moveCardinal n dir x0 = case dir of
+  U → x0 <+> (0, n)
+  D → x0 <+> (0, -n)
+  L → x0 <+> (-n, 0)
+  R → x0 <+> (n, 0)
+
+move1Cardinal ∷ CardinalDir → Coord → Coord
+move1Cardinal = moveCardinal 1
+
