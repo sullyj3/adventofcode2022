@@ -12,11 +12,12 @@ import           V2Lite
 type Coord = V2 Int
 type VisitedSet = Set Coord
 type Rope = [Coord]
+type Instruction = (CardinalDir, Int)
 
 -------------
 -- Parsing --
 -------------
-parseInput ∷ Text → [(CardinalDir, Int)]
+parseInput ∷ Text → [Instruction]
 parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
   where
     direction ∷ Parser CardinalDir
@@ -46,30 +47,26 @@ updateRope = state . curry \case
     where
       (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
-executeInstruction ∷ (CardinalDir, Int) → State (Rope, VisitedSet) ()
-executeInstruction instruction = do
-  (rope, visited) <- get
-
-  let oldHead = Unsafe.head rope
-      (tailLocations, rope') = flip runState rope $
-        traverse (updateRope . (oldHead +))
-               $ instructionOffsets instruction
-
-  put (rope', Set.fromList tailLocations <> visited)
+executeInstruction ∷ (Rope, VisitedSet) → Instruction → (Rope, VisitedSet)
+executeInstruction (rope, visited) instruction  = (rope', Set.fromList tailLocations <> visited)
   where
-    instructionOffsets ∷ (CardinalDir, Int) → [Coord]
+    instructionOffsets ∷ Instruction → [Coord]
     instructionOffsets (dir, steps) = take steps . drop 1 $ iterate (move1Cardinal dir) 0
 
-tailVisitCount ∷ Int → [(CardinalDir, Int)] → Int
-tailVisitCount ropeLength instructions = Set.size visited
-  where
-    (_,visited) = flip execState (replicate ropeLength 0, Set.singleton 0)
-                    . traverse executeInstruction $ instructions
+    oldHead = Unsafe.head rope
+    (tailLocations, rope') = flip runState rope $
+      traverse (updateRope . (oldHead +))
+             $ instructionOffsets instruction
 
-part1 ∷ [(CardinalDir, Int)] → Int
+tailVisitCount ∷ Int → [Instruction] → Int
+tailVisitCount ropeLength = Set.size 
+  . snd 
+  . foldl' executeInstruction (replicate ropeLength 0, mempty)
+
+part1 ∷ [Instruction] → Int
 part1 = tailVisitCount 2
 
-part2 ∷ [(CardinalDir, Int)] → Int
+part2 ∷ [Instruction] → Int
 part2 = tailVisitCount 10
 
 main ∷ IO ()
