@@ -33,10 +33,9 @@ parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
 updateChild ∷ Coord → Coord → Coord
 updateChild newParent oldChild
   | touching = oldChild
-  | otherwise = oldChild + signum offset
+  | otherwise = oldChild + signum (newParent - oldChild)
   where
-    offset = newParent - oldChild
-    touching = unvurry max (abs offset) <= 1
+    touching = newParent `chebyshevDist` oldChild <= 1
 
 -- returns the new location of the tail
 updateRope ∷ Coord → Rope → (Coord, Rope)

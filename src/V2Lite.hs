@@ -39,3 +39,7 @@ moveCardinal n dir x0 = case dir of
 
 move1Cardinal ∷ CardinalDir → V2 Int → V2 Int
 move1Cardinal = moveCardinal 1
+
+chebyshevDist ∷ (Num a, Ord a) ⇒ V2 a → V2 a → a
+chebyshevDist x y = unvurry max (abs (x - y))
+
