@@ -57,17 +57,17 @@ executeInstruction instruction = do
     instructionOffsets ∷ (CardinalDir, Int) → [Coord]
     instructionOffsets (dir, steps) = take steps . drop 1 $ iterate (move1Cardinal dir) (0,0)
 
-tailVisits ∷ Int → [(CardinalDir, Int)] → Int
-tailVisits ropeLength instructions = Set.size visited
+tailVisitCount ∷ Int → [(CardinalDir, Int)] → Int
+tailVisitCount ropeLength instructions = Set.size visited
   where
     (_,visited) = flip execState (replicate ropeLength (0,0), Set.singleton (0,0))
                     . traverse executeInstruction $ instructions
 
 part1 ∷ [(CardinalDir, Int)] → Int
-part1 = tailVisits 2
+part1 = tailVisitCount 2
 
 part2 ∷ [(CardinalDir, Int)] → Int
-part2 = tailVisits 10
+part2 = tailVisitCount 10
 
 main ∷ IO ()
 main = do
