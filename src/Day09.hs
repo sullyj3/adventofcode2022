@@ -6,7 +6,7 @@ import           AOC.Parsers
 import qualified Data.Set             as Set
 import qualified Relude.Unsafe        as Unsafe
 import           Text.Megaparsec.Char (upperChar)
-import           Utils                ((.:), Coord, CardinalDir (..), (<+>), (<->), move1Cardinal)
+import           Utils                ((.:), Coord, CardinalDir (..), (<+>), (<->), move1Cardinal, both)
 
 type VisitedSet = Set Coord
 type Rope = [Coord]
@@ -31,10 +31,10 @@ parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
 updateChild ∷ Coord → Coord → Coord
 updateChild newParent oldChild
   | touching = oldChild
-  | otherwise = oldChild <+> (signum offsetX, signum offsetY)
+  | otherwise = oldChild <+> both signum offset
   where
-    (offsetX, offsetY) = newParent <-> oldChild
-    touching = max (abs offsetX) (abs offsetY) <= 1
+    offset = newParent <-> oldChild
+    touching = uncurry (max `on` abs) offset <= 1
 
 -- returns the new location of the tail
 updateRope ∷ Coord → Rope → (Coord, Rope)
