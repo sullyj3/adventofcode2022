@@ -53,12 +53,9 @@ executeInstruction ∷ Pair Rope VisitedSet → Instruction → Pair Rope Visite
 executeInstruction (rope :!: visited) (dir, steps) =
   rope' :!: Set.fromList tailLocations <> visited
   where
-    instructionOffsets ∷ [Coord]
-    instructionOffsets = take steps . drop 1 $ iterate (move1Cardinal dir) 0
-
     oldHead = Unsafe.head rope
-    (tailLocations, rope') = flip runState rope $
-      traverse (updateRope . (oldHead +)) instructionOffsets
+    instructionOffsets = take steps . drop 1 $ iterate (move1Cardinal dir) oldHead
+    (tailLocations, rope') = runState (traverse updateRope instructionOffsets) rope
 
 tailVisitCount ∷ Int → [Instruction] → Int
 tailVisitCount ropeLength = Set.size
