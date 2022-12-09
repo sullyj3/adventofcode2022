@@ -37,8 +37,9 @@ updateChild newParent oldChild
   where
     touching = newParent `chebyshevDist` oldChild <= 1
 
--- returns the new location of the tail
-updateRope :: Coord -> State Rope Coord
+-- Given a new location of the head, updates the rope, returning the new
+-- location of the tail
+updateRope ∷ Coord → State Rope Coord
 updateRope = state . curry \case
   (_______, []    ) -> error "updateRope: empty rope"
   (newHead, _:rope) -> (newTail, newHead:rope')
