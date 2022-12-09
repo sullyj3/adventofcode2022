@@ -5,18 +5,17 @@ import           AOC
 import           AOC.Parse
 import           AOC.Parsers
 import           Data.Char            (digitToInt)
-import           Data.List            (maximum)
+import           Data.Massiv.Array    (Array, B, Comp (..), D, DL,
+                                       Dimension (..), Ix2 (..), Lower,
+                                       Manifest, Matrix, Source, U, compute)
 import qualified Data.Massiv.Array    as A
-import           Data.Vector          (Vector, (!))
-import qualified Data.Vector          as Vec
+import           Data.Massiv.Vector   (Vector)
 import           Prelude              hiding (some)
+import           PyF                  (str)
+import           Relude.Unsafe        (fromJust)
 import           Text.Megaparsec.Char (digitChar)
-import           Utils                (count, mapWithState, zipA)
-import Data.Massiv.Array (Array, Ix2, U, Comp (..))
-import PyF (str)
 
-type Forest r = Array r Ix2 Int
-
+type Forest r = Matrix r Int
 
 -------------
 -- Parsing --
@@ -31,38 +30,57 @@ parseInput = A.fromLists' (ParOn []) . unsafeParse (linesOf (some $ digitToInt <
 --
 -- Part 1
 --
-part1 ∷ Forest U → Forest U
-part1 = id
--- part1 = sum . map (count id) . allVisible
+part1 ∷ Forest U → Int
+part1 = A.sum . A.map (\x -> if x then 1 else 0) . visibles
 
--- isVisibleFromLeft ∷ [Int] → [Bool]
--- isVisibleFromLeft = mapWithState (\n currMax -> (currMax < n, max n currMax)) minBound
+mapOuterSlices ∷ (Source rep1 e, Source rep2 f, A.Index ix, A.Index (Lower ix))
+               ⇒ (Array rep1 (Lower ix) e → Array rep2 (Lower ix) f)
+               → Array rep1 ix e → Array DL ix f
+mapOuterSlices f = fromJust . A.stackOuterSlicesM . A.map f . A.outerSlices
 
--- isVisibleFromEitherSide ∷ [Int] → [Bool]
--- isVisibleFromEitherSide ns = zipWith (||)
---   (isVisibleFromLeft ns) (reverse . isVisibleFromLeft . reverse $ ns)
+arrScan ∷ (A.Index ix, Source rep e, Manifest rep2 s)
+        ⇒ (s → e → s) → s → Array rep ix e → Array rep2 ix s
+arrScan f z = flip evalState z . A.traverseA (\x ->
+  state $ \s -> let s' = f s x in (s', s'))
 
-arrOr :: Array r Ix2 Bool -> Array r Ix2 Bool -> Array r Ix2 Bool
+-- eg [1,2,2,3] -> [True, True, False, True]
+markIncreases ∷ (Ord a, Bounded a, Manifest rep2 Bool, Source rep1 a)
+              ⇒ Vector rep1 a
+              → Vector rep2 Bool
+markIncreases = flip evalState minBound . A.traverseA \x ->
+  state \prev -> (prev < x, x)
+
+treesVisibleFromLeft ∷ (Source rep Int) ⇒ Vector rep Int → Vector B Bool
+treesVisibleFromLeft treeline = markIncreases scanned
+  where
+    scanned = arrScan max minBound treeline :: Vector B Int
+
+treesVisibleFromRight ∷ (Source rep Int) ⇒ Vector rep Int → Vector D Bool
+treesVisibleFromRight treeline =
+  A.reverse Dim1 (treesVisibleFromLeft $ A.reverse Dim1 treeline :: Vector B Bool)
+
+arrOr ∷ (A.Index ix, Source r1 Bool, Source r2 Bool) ⇒ Array r1 ix Bool → Array r2 ix Bool → Array D ix Bool
 arrOr = A.zipWith (||)
 
-visibles :: Forest r -> Array r Ix2 Bool
-visibles forest = hVisibles `arrOr` vVisibles where
-  hVisibles = leftVisibles `arrOr` rightVisibles
-  vVisibles = topVisibles `arrOr` bottomVisibles
+visibles ∷ (Source r1 Int) ⇒ Forest r1 → Array D Ix2 Bool
+visibles forest = leftVisibles `arrOr` rightVisibles `arrOr` topVisibles `arrOr` bottomVisibles
+  where
+  leftVisibles, rightVisibles, topVisibles, bottomVisibles ∷ Matrix B Bool
+  leftVisibles = compute $ mapOuterSlices treesVisibleFromLeft forest
+  rightVisibles = compute $ mapOuterSlices treesVisibleFromRight forest
 
-  (height :. width) = A.size forest
+  topVisibles = compute
+    $ A.transpose
+    . (compute @B)
+    . mapOuterSlices treesVisibleFromLeft
+    $ A.transpose forest
 
-  leftVisibles = 
+  bottomVisibles = compute
+    $ A.transpose
+    . (compute @B)
+    . mapOuterSlices treesVisibleFromRight
+    $ A.transpose forest
 
-
--- allVisible ∷ Forest r → [[Bool]]
--- allVisible forest = zip2dWith (||) hVisibles vVisibles
---   where
---     hVisibles = map isVisibleFromEitherSide forest
---     vVisibles = transpose . map isVisibleFromEitherSide . transpose $ forest
--- 
---     zip2dWith ∷ (a → b → c) → [[a]] → [[b]] → [[c]]
---     zip2dWith f = zipWith (zipWith f)
 
 --
 -- Part 2
@@ -94,12 +112,10 @@ visibles forest = hVisibles `arrOr` vVisibles where
 
 main ∷ IO ()
 main = do
-  let forest = parseInput exampleInput
-  print forest
-  -- aocSinglePartMain "inputs/08.txt" exampleInput parseInput part1
+  aocSinglePartMain "inputs/08.txt" exampleInput parseInput part1
   -- aocMain "inputs/08.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
 
-exampleInput :: Text
+exampleInput ∷ Text
 exampleInput = toText @String [str|30373
 25512
 65332
