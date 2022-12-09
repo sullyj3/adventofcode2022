@@ -43,7 +43,7 @@ updateRope newHead (_:rope) = (newTail, newHead:rope')
   where
     (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
-executeInstruction ∷ MonadState (Rope, VisitedSet) m ⇒ (CardinalDir, Int) → m ()
+executeInstruction ∷ (CardinalDir, Int) → State (Rope, VisitedSet) ()
 executeInstruction instruction = do
   (rope, visited) <- get
 
