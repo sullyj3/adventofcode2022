@@ -1,14 +1,18 @@
 module AOC where
 
-import           Utils (tShow)
-import System.Clipboard (setClipboardString)
-import qualified Data.Text as T
+import qualified Data.Text        as T
+import           System.Clipboard (setClipboardString)
+import           Utils            (tShow)
 
 data Solution i o = Solution
   { parse ∷ Text → i
   , part1 ∷ i → o
   , part2 ∷ i → o
   }
+
+aocSinglePartExample ∷ Show o ⇒ (Text → i) → (i → o) → Text → IO ()
+aocSinglePartExample parseInput solve input =
+  putText $ "Example: " <> (tShow . solve . parseInput $ input)
 
 -- | prints the answer for both the example input and the real input,
 -- and copies the answer to the clipboard
@@ -17,7 +21,7 @@ aocSinglePartMain inputPath testInput parse solve = do
   solveExample
   solveReal
   where
-    solveExample 
+    solveExample
       | T.null testInput = do
         putStrLn "No example input provided, skipping"
         pure ()
