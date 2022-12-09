@@ -4,9 +4,9 @@ import           AOC
 import           AOC.Parse            hiding (State)
 import           AOC.Parsers
 import qualified Data.Set             as Set
-import           Data.Traversable     (for)
 import qualified Relude.Unsafe        as Unsafe
 import           Text.Megaparsec.Char (upperChar)
+import Utils ((.:))
 
 data Direction = U | D | L | R deriving (Show, Eq)
 type Coord = (Int, Int)
@@ -33,12 +33,6 @@ parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
 updateChild ∷ Coord → Coord → Coord
 updateChild newParent oldChild
   | touching = oldChild
-  -- not touching
-  -- same row
-  | offsetY == 0 && abs offsetX >= 2 = (ocx + signum offsetX, ocy)
-  -- same column
-  | offsetX == 0 && abs offsetY >= 2 = (ocx, ocy + signum offsetY)
-  -- not same row or column, need to move diagonally
   | otherwise = (ocx + signum offsetX, ocy + signum offsetY)
   where
     (npx, npy) = newParent
@@ -51,26 +45,22 @@ updateRope ∷ Coord → Rope → (Coord, Rope)
 updateRope _______ [] = error "updateRope: empty rope"
 updateRope newHead (_:rope) = (newTail, newHead:rope')
   where
-    (newTail, rope') = mapAccumL go newHead rope
-
-    go ∷ Coord → Coord → (Coord, Coord)
-    go newParent oldChild = let newChild = updateChild newParent oldChild
-                             in (newChild, newChild)
+    (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
 executeInstruction ∷ MonadState (Rope, VisitedSet) m ⇒ (Direction, Int) → m ()
 executeInstruction (dir, steps) = do
   (rope, visited) <- get
-  let (hx, hy) = Unsafe.head rope
 
-  let headVisits ∷ [(Int, Int)]
+  let (hx, hy) = Unsafe.head rope
+      headVisits ∷ [(Int, Int)]
       headVisits = case dir of
         U -> [ (hx, y) | y <- [hy+1      .. hy+steps] ]
         D -> [ (hx, y) | y <- [hy-1,hy-2 .. hy-steps] ]
         R -> [ (x, hy) | x <- [hx+1      .. hx+steps] ]
         L -> [ (x, hy) | x <- [hx-1,hx-2 .. hx-steps] ]
+      (tailLocations, rope') = flip runState rope $
+        traverse (state . updateRope) headVisits 
 
-  let (tailLocations, rope') = flip runState rope $ for headVisits \loc -> do
-        state $ updateRope loc
   put (rope', Set.fromList tailLocations <> visited)
 
 tailVisits ∷ Int → [(Direction, Int)] → Int

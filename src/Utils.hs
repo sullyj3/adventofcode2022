@@ -2,7 +2,6 @@
 module Utils where
 
 import           Data.Char       (digitToInt, intToDigit)
-import           Data.List       (nub)
 import           Data.List.Extra (anySame)
 import qualified Data.Map.Strict as Map
 import qualified Data.Text       as T
@@ -98,3 +97,8 @@ prettyMap = unlines . map (\(k,v) -> tShow k <> " -> " <> tShow v) . Map.toList
 
 zipA ∷ Applicative f ⇒ f a → f b → f (a,b)
 zipA = liftA2 (,)
+
+-- Compose a unary function with a binary one
+-- Known as "Atop" in BQN
+(.:) ∷ (c → d) → (a → b → c) → a → b → d
+(.:) = (.) . (.)
