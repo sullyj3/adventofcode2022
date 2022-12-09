@@ -6,8 +6,10 @@ import           AOC.Parsers
 import qualified Data.Set             as Set
 import qualified Relude.Unsafe        as Unsafe
 import           Text.Megaparsec.Char (upperChar)
-import           Utils                ((.:), Coord, CardinalDir (..), (<+>), (<->), move1Cardinal, both)
+import           Utils                (CardinalDir (..), (.:))
+import           V2Lite
 
+type Coord = V2 Int
 type VisitedSet = Set Coord
 type Rope = [Coord]
 
@@ -31,10 +33,10 @@ parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
 updateChild ∷ Coord → Coord → Coord
 updateChild newParent oldChild
   | touching = oldChild
-  | otherwise = oldChild <+> both signum offset
+  | otherwise = oldChild + signum offset
   where
-    offset = newParent <-> oldChild
-    touching = uncurry (max `on` abs) offset <= 1
+    offset = newParent - oldChild
+    touching = unvurry max (abs offset) <= 1
 
 -- returns the new location of the tail
 updateRope ∷ Coord → Rope → (Coord, Rope)
@@ -49,18 +51,18 @@ executeInstruction instruction = do
 
   let oldHead = Unsafe.head rope
       (tailLocations, rope') = flip runState rope $
-        traverse (state . updateRope . (oldHead <+>))
+        traverse (state . updateRope . (oldHead +))
                $ instructionOffsets instruction
 
   put (rope', Set.fromList tailLocations <> visited)
   where
     instructionOffsets ∷ (CardinalDir, Int) → [Coord]
-    instructionOffsets (dir, steps) = take steps . drop 1 $ iterate (move1Cardinal dir) (0,0)
+    instructionOffsets (dir, steps) = take steps . drop 1 $ iterate (move1Cardinal dir) 0
 
 tailVisitCount ∷ Int → [(CardinalDir, Int)] → Int
 tailVisitCount ropeLength instructions = Set.size visited
   where
-    (_,visited) = flip execState (replicate ropeLength (0,0), Set.singleton (0,0))
+    (_,visited) = flip execState (replicate ropeLength 0, Set.singleton 0)
                     . traverse executeInstruction $ instructions
 
 part1 ∷ [(CardinalDir, Int)] → Int
