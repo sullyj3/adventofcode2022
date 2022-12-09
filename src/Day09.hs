@@ -30,15 +30,19 @@ parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
 ---------------
 -- Solutions --
 ---------------
+(<+>) :: (Num a, Num b) => (a, b) -> (a, b) -> (a, b)
+(<+>) (x1, y1) (x2, y2) = (x1 + x2, y1 + y2)
+
+(<->) :: (Num a, Num b) => (a, b) -> (a, b) -> (a, b)
+(<->) (x1, y1) (x2, y2) = (x1 - x2, y1 - y2)
+
 updateChild ∷ Coord → Coord → Coord
-updateChild newParent oldChild
+updateChild newParent oldChild@(ocx, ocy)
   | touching = oldChild
   | otherwise = (ocx + signum offsetX, ocy + signum offsetY)
   where
-    (npx, npy) = newParent
-    (ocx, ocy) = oldChild
-    (offsetX, offsetY) = (npx - ocx, npy - ocy)
-    touching = max (abs (npx - ocx)) (abs (npy - ocy)) <= 1
+    (offsetX, offsetY) = newParent <-> oldChild
+    touching = max (abs offsetX) (abs offsetY) <= 1
 
 -- returns the new location of the tail
 updateRope ∷ Coord → Rope → (Coord, Rope)
@@ -48,20 +52,22 @@ updateRope newHead (_:rope) = (newTail, newHead:rope')
     (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
 executeInstruction ∷ MonadState (Rope, VisitedSet) m ⇒ (Direction, Int) → m ()
-executeInstruction (dir, steps) = do
+executeInstruction instruction = do
   (rope, visited) <- get
 
-  let (hx, hy) = Unsafe.head rope
-      headVisits ∷ [(Int, Int)]
-      headVisits = case dir of
-        U -> [ (hx, y) | y <- [hy+1      .. hy+steps] ]
-        D -> [ (hx, y) | y <- [hy-1,hy-2 .. hy-steps] ]
-        R -> [ (x, hy) | x <- [hx+1      .. hx+steps] ]
-        L -> [ (x, hy) | x <- [hx-1,hx-2 .. hx-steps] ]
+  let oldHead = Unsafe.head rope
       (tailLocations, rope') = flip runState rope $
-        traverse (state . updateRope) headVisits 
+        traverse (state . updateRope . (oldHead <+>)) 
+               $ instructionOffsets instruction 
 
   put (rope', Set.fromList tailLocations <> visited)
+  where
+    instructionOffsets :: (Direction, Int) -> [Coord]
+    instructionOffsets (dir, steps) = case dir of
+      U -> [ (0, y) | y <- [1 .. steps] ]
+      D -> [ (0, y) | y <- [-1, -2 .. -steps] ]
+      R -> [ (x, 0) | x <- [1 .. steps] ]
+      L -> [ (x, 0) | x <- [-1, -2 .. -steps] ]
 
 tailVisits ∷ Int → [(Direction, Int)] → Int
 tailVisits ropeLength instructions = Set.size visited
