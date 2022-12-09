@@ -2,17 +2,17 @@
 module Day07 (main) where
 
 import           AOC
-import           AOC.Parse            hiding (State)
-import           Data.List            (minimum)
-import qualified Data.Text            as T
-import           Prelude              hiding (many, some)
-import           Text.Megaparsec.Char (alphaNumChar, newline, string)
-import Data.Functor.Foldable
-import Data.Functor.Foldable.TH (makeBaseFunctor)
+import           AOC.Parse                hiding (State)
+import           Data.Functor.Foldable
+import           Data.Functor.Foldable.TH (makeBaseFunctor)
+import           Data.List                (minimum)
+import qualified Data.Text                as T
+import           Prelude                  hiding (many, some)
+import           Text.Megaparsec.Char     (alphaNumChar, newline, string)
 
 data LeafTree a = Branch [LeafTree a]
                 | Leaf a
-  deriving (Show, Eq, Functor, Foldable, Traversable)
+  deriving (Eq, Foldable, Functor, Show, Traversable)
 
 type FileTree = LeafTree Int
 
@@ -45,7 +45,7 @@ dirP = do
     lsFileP = Just <$> (Leaf <$> decimal) <* (single ' ' *> fileNameP)
     lsDirP = Nothing <$ (string "dir " *> fileNameP)
     cdUpP = void $ lineOf $ string "$ cd .."
-    fileNameP = do 
+    fileNameP = do
       name <- T.pack <$> some (alphaNumChar <|> single '.' <|> single '/')
       guard (name /= "..")
       pure name
@@ -59,7 +59,7 @@ dirSizes ∷ FileTree → [Int]
 dirSizes = map sum . directories
   where
     directories = para \case
-      LeafF _ -> []
+      LeafF _                             -> []
       BranchF (unzip -> (subTrees, dirs)) -> Branch subTrees : concat dirs
 
 part1 ∷ FileTree → Int
