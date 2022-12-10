@@ -2,7 +2,7 @@ module V2Lite where
 import           Utils (CardinalDir (..))
 
 data V2 a = V2 a a
-  deriving (Eq, Ord, Foldable, Functor, Show, Traversable)
+  deriving (Eq, Foldable, Functor, Ord, Show, Traversable)
 
 instance Applicative V2 where
   pure x = V2 x x
@@ -49,6 +49,12 @@ moveCardinal n dir x0 = x0 + n *^ unitCardinal dir
 move1Cardinal ∷ CardinalDir → V2 Int → V2 Int
 move1Cardinal = moveCardinal 1
 
+-- Metrics
+euclideanDist ∷ Floating a ⇒ V2 a → V2 a → a
+euclideanDist (V2 x1 y1) (V2 x2 y2) = sqrt $ (x2 - x1)**2 + (y2 - y1)**2
+
+manhattanDist ∷ Num a ⇒ V2 a → V2 a → a
+manhattanDist (V2 x1 y1) (V2 x2 y2) = abs (x2 - x1) + abs (y2 - y1)
+
 chebyshevDist ∷ (Num a, Ord a) ⇒ V2 a → V2 a → a
 chebyshevDist x y = unvurry max (abs (x - y))
-
