@@ -3,23 +3,24 @@ module Day10 (main) where
 import           AOC
 import           AOC.Parse
 import           AOC.Parsers
+import           Extra                      (chunksOf)
 import           PyF
-import           Utils       (selectIndices)
-import Text.Megaparsec.Char (string)
-import Text.Megaparsec.Char.Lexer (signed)
-import Extra (chunksOf)
+import           Text.Megaparsec.Char       (string)
+import           Text.Megaparsec.Char.Lexer (signed)
+import           Utils                      (selectIndices)
 
-data Instruction = Noop | Addx Int
-  deriving (Show, Eq)
+data Instruction = Noop
+                 | Addx Int
+  deriving (Eq, Show)
 -------------
 -- Parsing --
 -------------
-parseInput :: Text -> [Instruction]
+parseInput ∷ Text → [Instruction]
 parseInput = unsafeParse (linesOf instructionP)
   where
     instructionP = try (Noop <$ string "noop") <|> (Addx <$> (string "addx " *> signedInt))
 
-signedInt :: Parser Int
+signedInt ∷ Parser Int
 signedInt = signed (pure ()) decimal
 
 ---------------
@@ -29,39 +30,36 @@ signedInt = signed (pure ()) decimal
 --
 -- Part 1
 --
-part1 :: [Instruction] -> Int
-part1 = sum 
-  . selectIndices [i-1 | i <- [20,60,100,140,180,220]] 
-  . signalStrengths 
+part1 ∷ [Instruction] → Int
+part1 = sum
+  . selectIndices [i-1 | i <- [20,60,100,140,180,220]]
+  . signalStrengths
   . xValues
 
-xValues :: [Instruction] -> [Int]
+xValues ∷ [Instruction] → [Int]
 xValues = scanl (+) 1 . instructionsToAdds
 
-instructionsToAdds :: [Instruction] -> [Int]
+instructionsToAdds ∷ [Instruction] → [Int]
 instructionsToAdds = concatMap \case
-  Noop -> [0]
+  Noop   -> [0]
   Addx x -> [0, x]
 
-signalStrengths :: [Int] -> [Int]
+signalStrengths ∷ [Int] → [Int]
 signalStrengths = zipWith (*) [1..]
 
 --
 -- Part 2
 --
-part2 :: [Instruction] -> [String]
-part2 instructions = zipWith (zipWith renderPixel) rowIndices chunkedXs
+part2 ∷ [Instruction] → Text
+part2 instructions = unlines . fmap toText
+  . zipWith (zipWith renderPixel) rowIndices
+  $ chunkedXs
   where
     chunkedXs = chunksOf 40 $ xValues instructions
-
-renderPixel :: Int -> Int -> Char
-renderPixel rowIndex x
-  | abs (x - rowIndex) <= 1 = '#'
-  | otherwise = '.'
-
-rowIndices :: [[Int]]
-rowIndices = repeat [0..40-1]
-
+    rowIndices = repeat [0..40-1]
+    renderPixel rowIndex x
+      | abs (x - rowIndex) <= 1 = '#'
+      | otherwise = '.'
 
 main ∷ IO ()
 main = do
@@ -71,10 +69,9 @@ main = do
   putStrLn ""
   putStrLn "Part 2:"
   input <- parseInput <$> readFileText "inputs/10.txt"
-  let rendered = part2 input
-  putTextLn . unlines . fmap toText $ rendered
+  putTextLn $ part2 input
 
-exampleInput :: Text
+exampleInput ∷ Text
 exampleInput = toText @String [str|addx 15
 addx -11
 addx 6
