@@ -3,16 +3,11 @@ module Day09 (main) where
 import           AOC
 import           AOC.Parse            hiding (State)
 import           AOC.Parsers
-import qualified Data.Set             as Set
-import           Data.Strict          (Pair ((:!:)))
-import qualified Data.Strict          as Strict
-import qualified Relude.Unsafe        as Unsafe
 import           Text.Megaparsec.Char (upperChar)
 import           Utils                (CardinalDir (..), (.:))
 import           V2Lite
 
 type Coord = V2 Int
-type VisitedSet = Set Coord
 type Rope = [Coord]
 type Instruction = (CardinalDir, Int)
 
