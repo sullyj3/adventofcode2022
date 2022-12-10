@@ -51,9 +51,10 @@ updateRope = state . curry \case
 tailVisitCount ∷ Int → [Instruction] → Int
 tailVisitCount ropeLength = length
   . ordNub
-  . flip evalState (replicate ropeLength 0)
+  . flip evalState initialRope
   . traverse updateRope
   . headPositions
+  where initialRope = replicate ropeLength 0
 
 headPositions ∷ [Instruction] → [Coord]
 headPositions = scanl (+) 0 . concatMap \(dir, count) ->
