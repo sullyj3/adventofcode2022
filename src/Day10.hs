@@ -21,9 +21,6 @@ parseInput = unsafeParse (linesOf instructionP)
   where
     instructionP = try (Noop <$ string "noop") <|> (Addx <$> (string "addx " *> signedInt))
 
-signedInt ∷ Parser Int
-signedInt = signed (pure ()) decimal
-
 ---------------
 -- Solutions --
 ---------------

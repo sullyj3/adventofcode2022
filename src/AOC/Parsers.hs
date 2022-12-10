@@ -1,6 +1,7 @@
 -- designed to be imported qualified
 module AOC.Parsers
-  ( commaSeparatedInts
+  ( signedInt
+  , commaSeparatedInts
   , pairOf
   , pairOfBoth
   , numPair
@@ -13,6 +14,10 @@ import           Text.Megaparsec.Char
 import Prelude hiding (many, some)
 import Data.Char (isDigit)
 import Utils (zipA)
+import Text.Megaparsec.Char.Lexer (signed)
+
+signedInt ∷ Parser Int
+signedInt = signed (pure ()) decimal
 
 commaSeparatedInts ∷ Parser [Int]
 commaSeparatedInts = decimal `sepBy` single ','
