@@ -32,8 +32,9 @@ signedInt = signed (pure ()) decimal
 --
 part1 ∷ [Instruction] → Int
 part1 = sum
+  -- i-1 to convert from 0-indexed to 1-indexed
   . selectIndices [i-1 | i <- [20,60,100,140,180,220]]
-  . signalStrengths
+  . zipWith (*) [1..]
   . xValues
 
 xValues ∷ [Instruction] → [Int]
@@ -44,19 +45,16 @@ instructionsToAdds = concatMap \case
   Noop   -> [0]
   Addx x -> [0, x]
 
-signalStrengths ∷ [Int] → [Int]
-signalStrengths = zipWith (*) [1..]
-
 --
 -- Part 2
 --
 part2 ∷ [Instruction] → Text
-part2 instructions = unlines . fmap toText
-  . map (zipWith renderPixel [0..40-1])
-  . chunksOf 40 
-  $ xValues instructions
+part2 = unlines . fmap toText
+  . map (zipWith renderPixel [0..])
+  . chunksOf 40
+  . xValues
   where
-    renderPixel rowIndex x = if abs (x - rowIndex) <= 1 then '█' else ' '
+    renderPixel ix x = if abs (x - ix) <= 1 then '█' else ' '
 
 main ∷ IO ()
 main = do
