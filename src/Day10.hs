@@ -3,31 +3,221 @@ module Day10 (main) where
 import           AOC
 import           AOC.Parse
 import           AOC.Parsers
-import qualified Data.Text   as T
 import           PyF
-import           Utils       (tRead)
+import           Utils       (selectIndices)
+import Text.Megaparsec.Char (string)
+import Text.Megaparsec.Char.Lexer (signed)
+import Extra (chunksOf)
 
+data Instruction = Noop | Addx Int
+  deriving (Show, Eq)
 -------------
 -- Parsing --
 -------------
-parseInput = id
--- parseInput = unsafeParse numLine
--- parseInput = toString
+parseInput :: Text -> [Instruction]
+parseInput = unsafeParse (linesOf instructionP)
+  where
+    instructionP = try (Noop <$ string "noop") <|> (Addx <$> (string "addx " *> signedInt))
+
+signedInt :: Parser Int
+signedInt = signed (pure ()) decimal
 
 ---------------
 -- Solutions --
 ---------------
-part1 = const ()
-part2 = const ()
+
+--
+-- Part 1
+--
+part1 :: [Instruction] -> Int
+part1 = sum 
+  . selectIndices [i-1 | i <- [20,60,100,140,180,220]] 
+  . signalStrengths 
+  . xValues
+
+xValues :: [Instruction] -> [Int]
+xValues = scanl (+) 1 . instructionsToAdds
+
+instructionsToAdds :: [Instruction] -> [Int]
+instructionsToAdds = concatMap \case
+  Noop -> [0]
+  Addx x -> [0, x]
+
+signalStrengths :: [Int] -> [Int]
+signalStrengths = zipWith (*) [1..]
+
+--
+-- Part 2
+--
+part2 :: [Instruction] -> [String]
+part2 instructions = zipWith (zipWith renderPixel) rowIndices chunkedXs
+  where
+    chunkedXs = chunksOf 40 $ xValues instructions
+
+renderPixel :: Int -> Int -> Char
+renderPixel rowIndex x
+  | abs (x - rowIndex) <= 1 = '#'
+  | otherwise = '.'
+
+rowIndices :: [[Int]]
+rowIndices = repeat [0..40-1]
+
 
 main ∷ IO ()
 main = do
-  -- other testing here
-
+  putStrLn "Part 1:"
   aocSinglePartMain "inputs/10.txt" exampleInput parseInput part1
 
-  -- aocMain "inputs/10.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
+  putStrLn ""
+  putStrLn "Part 2:"
+  input <- parseInput <$> readFileText "inputs/10.txt"
+  let rendered = part2 input
+  putTextLn . unlines . fmap toText $ rendered
 
 exampleInput :: Text
-exampleInput = toText @String [str||]
-
+exampleInput = toText @String [str|addx 15
+addx -11
+addx 6
+addx -3
+addx 5
+addx -1
+addx -8
+addx 13
+addx 4
+noop
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx 5
+addx -1
+addx -35
+addx 1
+addx 24
+addx -19
+addx 1
+addx 16
+addx -11
+noop
+noop
+addx 21
+addx -15
+noop
+noop
+addx -3
+addx 9
+addx 1
+addx -3
+addx 8
+addx 1
+addx 5
+noop
+noop
+noop
+noop
+noop
+addx -36
+noop
+addx 1
+addx 7
+noop
+noop
+noop
+addx 2
+addx 6
+noop
+noop
+noop
+noop
+noop
+addx 1
+noop
+noop
+addx 7
+addx 1
+noop
+addx -13
+addx 13
+addx 7
+noop
+addx 1
+addx -33
+noop
+noop
+noop
+addx 2
+noop
+noop
+noop
+addx 8
+noop
+addx -1
+addx 2
+addx 1
+noop
+addx 17
+addx -9
+addx 1
+addx 1
+addx -3
+addx 11
+noop
+noop
+addx 1
+noop
+addx 1
+noop
+noop
+addx -13
+addx -19
+addx 1
+addx 3
+addx 26
+addx -30
+addx 12
+addx -1
+addx 3
+addx 1
+noop
+noop
+noop
+addx -9
+addx 18
+addx 1
+addx 2
+noop
+noop
+addx 9
+noop
+noop
+noop
+addx -1
+addx 2
+addx -37
+addx 1
+addx 3
+noop
+addx 15
+addx -21
+addx 22
+addx -6
+addx 1
+noop
+addx 2
+addx 1
+noop
+addx -10
+noop
+noop
+addx 20
+addx 1
+addx 2
+addx 2
+addx -6
+addx -11
+noop
+noop
+noop|]
