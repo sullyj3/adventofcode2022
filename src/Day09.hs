@@ -34,9 +34,8 @@ parseInput = unsafeParse $ linesOf $ pairOfBoth direction decimal " "
 -- Solutions --
 ---------------
 updateChild ∷ Coord → Coord → Coord
-updateChild newParent oldChild
-  | touching = oldChild
-  | otherwise = oldChild + signum (newParent - oldChild)
+updateChild newParent oldChild =
+  if touching then oldChild else oldChild + signum (newParent - oldChild)
   where
     touching = newParent `chebyshevDist` oldChild <= 1
 
