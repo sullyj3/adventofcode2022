@@ -49,18 +49,16 @@ updateRope = state . curry \case
     where
       (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
-executeInstruction ∷ Pair Rope VisitedSet → Instruction → Pair Rope VisitedSet
-executeInstruction (rope :!: visited) (dir, steps) =
-  rope' :!: Set.fromList tailLocations <> visited
-  where
-    oldHead = Unsafe.head rope
-    instructionOffsets = take steps . drop 1 $ iterate (move1Cardinal dir) oldHead
-    (tailLocations, rope') = runState (traverse updateRope instructionOffsets) rope
-
 tailVisitCount ∷ Int → [Instruction] → Int
-tailVisitCount ropeLength = Set.size
-  . Strict.snd
-  . foldl' executeInstruction (replicate ropeLength 0 :!: mempty)
+tailVisitCount ropeLength = length
+  . ordNub
+  . flip evalState (replicate ropeLength 0)
+  . traverse updateRope
+  . headPositions
+
+headPositions ∷ [Instruction] → [Coord]
+headPositions = scanl (+) 0 . concatMap \(dir, count) ->
+  replicate count (unitCardinal dir)
 
 part1 ∷ [Instruction] → Int
 part1 = tailVisitCount 2
