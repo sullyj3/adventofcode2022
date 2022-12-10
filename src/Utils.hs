@@ -8,6 +8,7 @@ import qualified Data.Set        as Set
 import qualified Data.Text       as T
 import           Numeric
 import qualified Relude.Unsafe   as Unsafe
+import Optics.Core (imap)
 
 both ∷ Bifunctor f ⇒ (a → b) → f a a → f b b
 both = join bimap
@@ -83,6 +84,9 @@ selectIndices = go 0
           | otherwise = go (i+1) (idx:idxs) xs
         go _ _ [] = []
 
+selectIndices1 ∷ [Int] → [a] → [a]
+selectIndices1 = selectIndices . map (subtract 1)
+
 count ∷ (a → Bool) → [a] → Int
 count p = length . filter p
 
@@ -108,3 +112,6 @@ countUniq = Set.size . Set.fromList
 (.:) = (.) . (.)
 
 data CardinalDir = U | D | L | R deriving (Eq, Show)
+
+imap1 ∷ (Int → a → b) → [a] → [b]
+imap1 f = imap (f . (+1))

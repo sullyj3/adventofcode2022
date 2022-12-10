@@ -7,7 +7,7 @@ import           Extra                      (chunksOf)
 import           PyF
 import           Text.Megaparsec.Char       (string)
 import           Text.Megaparsec.Char.Lexer (signed)
-import           Utils                      (selectIndices)
+import           Utils                      (selectIndices, imap1, selectIndices1)
 
 data Instruction = Noop
                  | Addx Int
@@ -32,9 +32,8 @@ signedInt = signed (pure ()) decimal
 --
 part1 ∷ [Instruction] → Int
 part1 = sum
-  -- i-1 to convert from 0-indexed to 1-indexed
-  . selectIndices [i-1 | i <- [20,60,100,140,180,220]]
-  . zipWith (*) [1..]
+  . selectIndices1 [20,60,100,140,180,220]
+  . imap1 (*)
   . xValues
 
 xValues ∷ [Instruction] → [Int]
