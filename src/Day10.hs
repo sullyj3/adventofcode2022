@@ -6,8 +6,7 @@ import           AOC.Parsers
 import           Extra                      (chunksOf)
 import           PyF
 import           Text.Megaparsec.Char       (string)
-import           Text.Megaparsec.Char.Lexer (signed)
-import           Utils                      (selectIndices, imap1, selectIndices1)
+import           Utils                      (imap1, selectIndices1)
 import Optics.Core (imap)
 
 data Instruction = Noop
