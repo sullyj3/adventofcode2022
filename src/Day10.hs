@@ -52,11 +52,10 @@ signalStrengths = zipWith (*) [1..]
 --
 part2 ∷ [Instruction] → Text
 part2 instructions = unlines . fmap toText
-  . zipWith (zipWith renderPixel) rowIndices
+  . map (zipWith renderPixel [0..40-1])
   $ chunkedXs
   where
     chunkedXs = chunksOf 40 $ xValues instructions
-    rowIndices = repeat [0..40-1]
     renderPixel rowIndex x
       | abs (x - rowIndex) <= 1 = '#'
       | otherwise = '.'
