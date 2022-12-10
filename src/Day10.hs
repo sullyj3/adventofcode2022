@@ -8,6 +8,7 @@ import           PyF
 import           Text.Megaparsec.Char       (string)
 import           Text.Megaparsec.Char.Lexer (signed)
 import           Utils                      (selectIndices, imap1, selectIndices1)
+import Optics.Core (imap)
 
 data Instruction = Noop
                  | Addx Int
@@ -31,16 +32,10 @@ signedInt = signed (pure ()) decimal
 -- Part 1
 --
 part1 ∷ [Instruction] → Int
-part1 = sum
-  . selectIndices1 [20,60,100,140,180,220]
-  . imap1 (*)
-  . xValues
+part1 = sum . selectIndices1 [20,60..220] . imap1 (*) . xValues
 
 xValues ∷ [Instruction] → [Int]
-xValues = scanl (+) 1 . instructionsToAdds
-
-instructionsToAdds ∷ [Instruction] → [Int]
-instructionsToAdds = concatMap \case
+xValues = scanl (+) 1 . concatMap \case
   Noop   -> [0]
   Addx x -> [0, x]
 
@@ -48,10 +43,7 @@ instructionsToAdds = concatMap \case
 -- Part 2
 --
 part2 ∷ [Instruction] → Text
-part2 = unlines . fmap toText
-  . map (zipWith renderPixel [0..])
-  . chunksOf 40
-  . xValues
+part2 = unlines . map (toText . imap renderPixel) . chunksOf 40 . xValues
   where
     renderPixel ix x = if abs (x - ix) <= 1 then '█' else ' '
 
