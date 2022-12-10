@@ -53,12 +53,10 @@ signalStrengths = zipWith (*) [1..]
 part2 ∷ [Instruction] → Text
 part2 instructions = unlines . fmap toText
   . map (zipWith renderPixel [0..40-1])
-  $ chunkedXs
+  . chunksOf 40 
+  $ xValues instructions
   where
-    chunkedXs = chunksOf 40 $ xValues instructions
-    renderPixel rowIndex x
-      | abs (x - rowIndex) <= 1 = '#'
-      | otherwise = '.'
+    renderPixel rowIndex x = if abs (x - rowIndex) <= 1 then '█' else ' '
 
 main ∷ IO ()
 main = do
