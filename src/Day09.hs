@@ -44,11 +44,10 @@ updateRope = state . curry \case
       (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
 tailVisitCount ∷ Int → [Instruction] → Int
-tailVisitCount ropeLength = countUniq
-  . flip evalState initialRope
-  . traverse updateRope
-  . headPositions
+tailVisitCount ropeLength instructions = countUniq tailPositions
   where initialRope = replicate ropeLength 0
+        tailPositions = flip evalState initialRope $
+          traverse updateRope $ headPositions instructions
 
 headPositions ∷ [Instruction] → [Coord]
 headPositions = scanl (+) 0 . concatMap \(dir, count) ->
