@@ -1,7 +1,7 @@
 module Day09 (main) where
 
 import           AOC
-import           AOC.Parse            hiding (State)
+import           AOC.Parse
 import           AOC.Parsers
 import           Text.Megaparsec.Char (upperChar)
 import           Utils                (CardinalDir (..), (.:))

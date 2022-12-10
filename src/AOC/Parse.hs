@@ -6,7 +6,7 @@ module AOC.Parse
   , unsafeParse
   ) where
 
-import           Text.Megaparsec            hiding (count)
+import           Text.Megaparsec            hiding (count, State)
 import           Text.Megaparsec.Char.Lexer (decimal)
 
 type Parser = Parsec Void Text
