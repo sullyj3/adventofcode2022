@@ -4,7 +4,7 @@ import           AOC
 import           AOC.Parse
 import           AOC.Parsers
 import           Text.Megaparsec.Char (upperChar)
-import           Utils                (CardinalDir (..), (.:))
+import           Utils                (CardinalDir (..), countUniq, (.:))
 import           V2Lite
 
 type Coord = V2 Int
@@ -44,8 +44,7 @@ updateRope = state . curry \case
       (newTail, rope') = mapAccumL (join (,) .: updateChild) newHead rope
 
 tailVisitCount ∷ Int → [Instruction] → Int
-tailVisitCount ropeLength = length
-  . ordNub
+tailVisitCount ropeLength = countUniq
   . flip evalState initialRope
   . traverse updateRope
   . headPositions

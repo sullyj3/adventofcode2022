@@ -4,6 +4,7 @@ module Utils where
 import           Data.Char       (digitToInt, intToDigit)
 import           Data.List.Extra (anySame)
 import qualified Data.Map.Strict as Map
+import qualified Data.Set        as Set
 import qualified Data.Text       as T
 import           Numeric
 import qualified Relude.Unsafe   as Unsafe
@@ -98,9 +99,12 @@ prettyMap = unlines . map (\(k,v) -> tShow k <> " -> " <> tShow v) . Map.toList
 zipA ∷ Applicative f ⇒ f a → f b → f (a,b)
 zipA = liftA2 (,)
 
+countUniq ∷ Ord a ⇒ [a] → Int
+countUniq = Set.size . Set.fromList
+
 -- Compose a unary function with a binary one
 -- Known as "Atop" in BQN
 (.:) ∷ (c → d) → (a → b → c) → a → b → d
 (.:) = (.) . (.)
 
-data CardinalDir = U | D | L | R deriving (Show, Eq)
+data CardinalDir = U | D | L | R deriving (Eq, Show)
