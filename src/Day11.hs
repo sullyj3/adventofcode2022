@@ -6,34 +6,31 @@ import           AOC.Parse
 import qualified Data.Map.Merge.Strict as Merge
 import           Data.Map.Strict       ((!))
 import qualified Data.Map.Strict       as Map
-import qualified Data.Sequence         as Seq
-import           Data.Strict           (Pair)
-import           Data.Strict.Tuple     (Pair (..))
 import           PyF                   (str)
 import           Relude.Unsafe         ((!!))
 import           Text.Megaparsec.Char  (hspace1, newline, string)
 
 -- I'd prefer to use functions, but I want to derive Show for monkey
-data Operation = Plus !Integer
-               | Times !Integer
+data Operation = Plus !Int
+               | Times !Int
                | TimesOld
   deriving (Eq, Ord, Show)
 
-runOp ∷ Operation → Integer → Integer
+runOp ∷ Operation → Int → Int
 runOp op old = case op of
   Plus  x  -> old + x
   Times x  -> old * x
   TimesOld -> old * old
 
-newtype Test = DivisibleBy { divisor :: Integer }
+newtype Test = DivisibleBy { divisor :: Int }
   deriving (Eq, Ord, Show)
 
-runTest ∷ Test → Integer → Bool
+runTest ∷ Test → Int → Bool
 runTest = \case
   DivisibleBy x -> (== 0) . (`mod` x)
 
 data Monkey = Monkey { index          :: Int
-                     , initialItems   :: [Integer]
+                     , initialItems   :: [Int]
                      , operation      :: Operation
                      , test           :: Test
                      , throwToIfTrue  :: Int
@@ -41,7 +38,7 @@ data Monkey = Monkey { index          :: Int
                      }
   deriving (Eq, Ord, Show)
 
-data MonkeyState = MonkeyState { currentItems    :: ![Integer]
+data MonkeyState = MonkeyState { currentItems    :: ![Int]
                                , inspectionCount :: !Int
                                }
   deriving (Eq, Ord, Show)
@@ -88,7 +85,7 @@ binOp = try (Plus <$ single '+' <*> (hspace1 *> decimal))
 -- |~) _  __|_  /~\ _  _
 -- |~ (_||  |   \_/| |(/_
 --
-common ∷ (Integer → Integer) → Int → [Monkey] → Int
+common ∷ (Int → Int) → Int → [Monkey] → Int
 common shrinkWorry nRounds ms = product . take 2 . sortOn Down $ inspectionCounts
   where
   monkeys = initMonkeys ms
@@ -105,7 +102,7 @@ initMonkeyStates = fromList . map \m → (m.index, MonkeyState m.initialItems 0)
 initMonkeys ∷ [Monkey] → Monkeys
 initMonkeys = fromList . map \m → (m.index, m)
 
-runMonkeyTurn ∷ Monkeys → (Integer → Integer) → MonkeyStates → Int → MonkeyStates
+runMonkeyTurn ∷ Monkeys → (Int → Int) → MonkeyStates → Int → MonkeyStates
 runMonkeyTurn monkeys shrinkWorry states ix = Map.insert ix currMonkeyState'
                                             . mergeInNewItemLocations newItemLocations
                                             $ states
@@ -115,12 +112,12 @@ runMonkeyTurn monkeys shrinkWorry states ix = Map.insert ix currMonkeyState'
                      ( currMonkeyState.inspectionCount
                      + length currMonkeyState.currentItems)
 
-    newItemLocations ∷ Map Int [Integer]
+    newItemLocations ∷ Map Int [Int]
     newItemLocations = Map.fromListWith (<>)
                      . map (second (:[]) . decideThrow)
                      $ currMonkeyState.currentItems
 
-    decideThrow ∷ Integer → (Int, Integer)
+    decideThrow ∷ Int → (Int, Int)
     decideThrow item =
         let monkey = monkeys ! ix
             worryLevel = shrinkWorry $ runOp monkey.operation item
@@ -128,7 +125,7 @@ runMonkeyTurn monkeys shrinkWorry states ix = Map.insert ix currMonkeyState'
                     | otherwise                      = monkey.throwToIfFalse
         in (throwTo, worryLevel)
 
-    mergeInNewItemLocations ∷ Map Int [Integer] → MonkeyStates → MonkeyStates
+    mergeInNewItemLocations ∷ Map Int [Int] → MonkeyStates → MonkeyStates
     mergeInNewItemLocations = Merge.merge
       Merge.dropMissing -- There should never be keys in the new item locations
                         -- that aren't in the monkey states
@@ -136,7 +133,7 @@ runMonkeyTurn monkeys shrinkWorry states ix = Map.insert ix currMonkeyState'
       (Merge.zipWithMatched \_ newItems (MonkeyState is n) → MonkeyState (is <> newItems) n)
 
 
-runRound ∷ Monkeys → (Integer → Integer) → MonkeyStates → MonkeyStates
+runRound ∷ Monkeys → (Int → Int) → MonkeyStates → MonkeyStates
 runRound monkeys shrinkWorry s0 = foldl' (runMonkeyTurn monkeys shrinkWorry) s0 [0..nMonkeys-1]
   where
     nMonkeys = Map.size s0
