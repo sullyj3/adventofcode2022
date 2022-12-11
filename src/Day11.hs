@@ -91,12 +91,9 @@ part1 = monkeyBusinessLvl (`div` 3) 20
 monkeyBusinessLvl ∷ (Int → Int) → Int → Monkeys → Int
 monkeyBusinessLvl shrinkWorry nRounds monkeys = product . take 2 . sortOn Down $ inspectionCounts
   where
-  s0 = initMonkeyStates monkeys
+  s0 = M.map (\m → MonkeyState m.initialItems 0) monkeys
   s1 = iterate (runRound monkeys shrinkWorry) s0 !! nRounds
   inspectionCounts = (.inspectionCount) <$> Map.elems s1
-
-initMonkeyStates ∷ Monkeys → MonkeyStates
-initMonkeyStates = M.map \m → MonkeyState m.initialItems 0
 
 runMonkeyTurn ∷ Monkeys → (Int → Int) → MonkeyStates → Int → MonkeyStates
 runMonkeyTurn monkeys shrinkWorry states ix = Map.insert ix currMonkeyState'
