@@ -3,11 +3,10 @@ module Day11 (main) where
 
 import           AOC
 import           AOC.Parse
-import qualified Data.Map.Merge.Strict as Merge
+import           Data.List             (partition)
 import           Data.Map.Strict       ((!))
 import qualified Data.Map.Strict       as M
 import qualified Data.Map.Strict       as Map
-import           PyF                   (str)
 import           Relude.Unsafe         ((!!))
 import           Text.Megaparsec.Char  (hspace1, newline, string)
 
@@ -96,34 +95,20 @@ monkeyBusinessLvl shrinkWorry nRounds monkeys = product . take 2 . sortOn Down $
   inspectionCounts = (.inspectionCount) <$> Map.elems s1
 
 runMonkeyTurn ∷ Monkeys → (Int → Int) → MonkeyStates → Int → MonkeyStates
-runMonkeyTurn monkeys shrinkWorry states ix = Map.insert ix currMonkeyState'
-                                            . mergeInNewItemLocations newItemLocations
-                                            $ states
+runMonkeyTurn monkeys shrinkWorry states ix =
+    Map.insert ix currMonkeyState'
+    . Map.adjust (appendItems trues) monkey.throwToIfTrue
+    . Map.adjust (appendItems falses) monkey.throwToIfFalse
+    $ states
   where
-    currMonkeyState  = states ! ix
-    currMonkeyState' = MonkeyState mempty
-                     ( currMonkeyState.inspectionCount
-                     + length currMonkeyState.currentItems)
+    monkey = monkeys ! ix
+    MonkeyState {currentItems, inspectionCount} = states ! ix
+    currMonkeyState' = MonkeyState [] (inspectionCount + length currentItems)
+    worryLevels = shrinkWorry . runOp monkey.operation <$> currentItems
+    (trues, falses) = partition (runTest monkey.test) worryLevels
 
-    newItemLocations ∷ Map Int [Int]
-    newItemLocations = Map.fromListWith (<>)
-                     . map (second (:[]) . decideThrow)
-                     $ currMonkeyState.currentItems
-
-    decideThrow ∷ Int → (Int, Int)
-    decideThrow item =
-        let monkey = monkeys ! ix
-            worryLevel = shrinkWorry $ runOp monkey.operation item
-            throwTo | runTest monkey.test worryLevel = monkey.throwToIfTrue
-                    | otherwise                      = monkey.throwToIfFalse
-        in (throwTo, worryLevel)
-
-    mergeInNewItemLocations ∷ Map Int [Int] → MonkeyStates → MonkeyStates
-    mergeInNewItemLocations = Merge.merge
-      Merge.dropMissing -- There should never be keys in the new item locations
-                        -- that aren't in the monkey states
-      Merge.preserveMissing
-      (Merge.zipWithMatched \_ newItems (MonkeyState is n) → MonkeyState (is <> newItems) n)
+    appendItems ∷ [Int] → MonkeyState → MonkeyState
+    appendItems items ms = ms { currentItems = ms.currentItems <> items }
 
 runRound ∷ Monkeys → (Int → Int) → MonkeyStates → MonkeyStates
 runRound monkeys shrinkWorry s0 = foldl' (runMonkeyTurn monkeys shrinkWorry) s0 [0..nMonkeys-1]
@@ -146,37 +131,3 @@ part2 ms = monkeyBusinessLvl (`mod` commonMultiple) 10000 ms
 main ∷ IO ()
 main = do
   aocMain "inputs/11.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
-
-
--- (~   _  _ _  _ | _   . _  _   _|_
--- (_><(_|| | ||_)|(/_  || ||_)|_||
---             |            |
-exampleInput ∷ Text
-exampleInput = toText @String [str|Monkey 0:
-  Starting items: 79, 98
-  Operation: new = old * 19
-  Test: divisible by 23
-    If true: throw to monkey 2
-    If false: throw to monkey 3
-
-Monkey 1:
-  Starting items: 54, 65, 75, 74
-  Operation: new = old + 6
-  Test: divisible by 19
-    If true: throw to monkey 2
-    If false: throw to monkey 0
-
-Monkey 2:
-  Starting items: 79, 60, 97
-  Operation: new = old * old
-  Test: divisible by 13
-    If true: throw to monkey 1
-    If false: throw to monkey 3
-
-Monkey 3:
-  Starting items: 74
-  Operation: new = old + 3
-  Test: divisible by 17
-    If true: throw to monkey 0
-    If false: throw to monkey 1|]
-
