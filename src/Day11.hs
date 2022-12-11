@@ -45,7 +45,7 @@ data MonkeyState = MonkeyState { currentItems    :: ![Int]
 
 -- Keyed by monkey id
 -- Information about how the monkeys behave. This does not change after initial setup
-type Monkeys = Map Int Monkey
+type Monkeys = [Monkey]
 
 -- Keyed by monkey id
 -- Information about the current state of the monkeys - their current held items and
@@ -57,8 +57,8 @@ type MonkeyStates = Map Int MonkeyState
 -- |~ (_|| _\|| |(_|
 --                _|
 parseInput ∷ Text → Monkeys
-parseInput = M.fromList . map (\m → (m.index, m)) . unsafeParse
-  (monkeyP `sepEndBy` (try (void $ newline <* newline) <|> eof))
+parseInput = unsafeParse $
+  monkeyP `sepEndBy` (try (void $ newline <* newline) <|> eof)
 
 monkeyP ∷ Parser Monkey
 monkeyP = do
@@ -90,19 +90,18 @@ part1 = monkeyBusinessLvl (`div` 3) 20
 monkeyBusinessLvl ∷ (Int → Int) → Int → Monkeys → Int
 monkeyBusinessLvl shrinkWorry nRounds monkeys = product . take 2 . sortOn Down $ inspectionCounts
   where
-  s0 = M.map (\m → MonkeyState m.initialItems 0) monkeys
+  s0 = M.fromList $ (\m → (m.index, MonkeyState m.initialItems 0)) <$> monkeys
   s1 = iterate (runRound monkeys shrinkWorry) s0 !! nRounds
   inspectionCounts = (.inspectionCount) <$> Map.elems s1
 
-runMonkeyTurn ∷ Monkeys → (Int → Int) → MonkeyStates → Int → MonkeyStates
-runMonkeyTurn monkeys shrinkWorry states ix =
-    Map.insert ix (MonkeyState [] (inspectionCount + length currentItems))
+runMonkeyTurn ∷ (Int → Int) → MonkeyStates → Monkey → MonkeyStates
+runMonkeyTurn shrinkWorry states monkey =
+    Map.insert (monkey.index) (MonkeyState [] (inspectionCount + length currentItems))
     . Map.adjust (appendItems trues) monkey.throwToIfTrue
     . Map.adjust (appendItems falses) monkey.throwToIfFalse
     $ states
   where
-    monkey = monkeys ! ix
-    MonkeyState {currentItems, inspectionCount} = states ! ix
+    MonkeyState {currentItems, inspectionCount} = states ! monkey.index
     worryLevels = shrinkWorry . runOp monkey.operation <$> currentItems
     (trues, falses) = partition (runTest monkey.test) worryLevels
 
@@ -110,9 +109,7 @@ runMonkeyTurn monkeys shrinkWorry states ix =
     appendItems items ms = ms { currentItems = ms.currentItems <> items }
 
 runRound ∷ Monkeys → (Int → Int) → MonkeyStates → MonkeyStates
-runRound monkeys shrinkWorry s0 = foldl' (runMonkeyTurn monkeys shrinkWorry) s0 [0..nMonkeys-1]
-  where
-    nMonkeys = Map.size s0
+runRound monkeys shrinkWorry s0 = foldl' (runMonkeyTurn shrinkWorry) s0 monkeys
 
 
 -- |~) _  __|_  ~|~  _
@@ -121,7 +118,7 @@ runRound monkeys shrinkWorry s0 = foldl' (runMonkeyTurn monkeys shrinkWorry) s0 
 part2 ∷ Monkeys → Int
 part2 ms = monkeyBusinessLvl (`mod` commonMultiple) 10000 ms
   where
-    commonMultiple = product . M.map ((.divisor) . (.test)) $ ms
+    commonMultiple = product . map ((.divisor) . (.test)) $ ms
 
 
 -- |\/| _ . _
