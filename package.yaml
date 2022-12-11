@@ -51,6 +51,7 @@ dependencies:
   - recursion-schemes
   - vector
   - strict
+  - containers
 
 ghc-options:
 - -Wall

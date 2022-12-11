@@ -3,14 +3,15 @@ module Day11 (main) where
 
 import           AOC
 import           AOC.Parse
-import           Data.Map.Strict      ((!))
-import qualified Data.Map.Strict      as Map
-import qualified Data.Sequence        as Seq
-import           Data.Strict          (Pair)
-import           Data.Strict.Tuple    (Pair (..))
-import           PyF                  (str)
-import           Relude.Unsafe        ((!!))
-import           Text.Megaparsec.Char (hspace1, newline, string)
+import qualified Data.Map.Merge.Strict as Merge
+import           Data.Map.Strict       ((!))
+import qualified Data.Map.Strict       as Map
+import qualified Data.Sequence         as Seq
+import           Data.Strict           (Pair)
+import           Data.Strict.Tuple     (Pair (..))
+import           PyF                   (str)
+import           Relude.Unsafe         ((!!))
+import           Text.Megaparsec.Char  (hspace1, newline, string)
 
 -- I'd prefer to use functions, but I want to derive Show for monkey
 data Operation = Plus !Integer
@@ -40,7 +41,7 @@ data Monkey = Monkey { index          :: Int
                      }
   deriving (Eq, Ord, Show)
 
-data MonkeyState = MonkeyState { currentItems    :: !(Seq Integer)
+data MonkeyState = MonkeyState { currentItems    :: ![Integer]
                                , inspectionCount :: !Int
                                }
   deriving (Eq, Ord, Show)
@@ -99,35 +100,42 @@ part1 ∷ [Monkey] → Int
 part1 = common (`div` 3) 20
 
 initMonkeyStates ∷ [Monkey] → MonkeyStates
-initMonkeyStates = fromList . map \m → (m.index, MonkeyState (Seq.fromList m.initialItems) 0)
+initMonkeyStates = fromList . map \m → (m.index, MonkeyState m.initialItems 0)
 
 initMonkeys ∷ [Monkey] → Monkeys
 initMonkeys = fromList . map \m → (m.index, m)
 
 runMonkeyTurn ∷ Monkeys → (Integer → Integer) → MonkeyStates → Int → MonkeyStates
-runMonkeyTurn monkeys shrinkWorry states ix = states'
+runMonkeyTurn monkeys shrinkWorry states ix = Map.insert ix currMonkeyState'
+                                            . mergeInNewItemLocations newItemLocations
+                                            $ states
   where
-    s0 = states ! ix
-    monkey = monkeys ! ix
+    currMonkeyState  = states ! ix
+    currMonkeyState' = MonkeyState mempty
+                     ( currMonkeyState.inspectionCount
+                     + length currMonkeyState.currentItems)
 
-    newItemLocations = map decideItem (toList s0.currentItems)
+    newItemLocations ∷ Map Int [Integer]
+    newItemLocations = Map.fromListWith (<>)
+                     . map (second (:[]) . decideThrow)
+                     . toList
+                     $ currMonkeyState.currentItems
 
-    decideItem item =
-        let worryLevel = shrinkWorry $ runOp monkey.operation item
+    decideThrow ∷ Integer → (Int, Integer)
+    decideThrow item =
+        let monkey = monkeys ! ix
+            worryLevel = shrinkWorry $ runOp monkey.operation item
             throwTo | runTest monkey.test worryLevel = monkey.throwToIfTrue
                     | otherwise                      = monkey.throwToIfFalse
-        in (throwTo :!: worryLevel)
+        in (throwTo, worryLevel)
 
-    s1 = MonkeyState Seq.empty (s0.inspectionCount + Seq.length s0.currentItems)
+    mergeInNewItemLocations ∷ Map Int [Integer] → MonkeyStates → MonkeyStates
+    mergeInNewItemLocations = Merge.merge
+      Merge.dropMissing -- There should never be keys in the new item locations
+                        -- that aren't in the monkey states
+      Merge.preserveMissing
+      (Merge.zipWithMatched \_ newItems (MonkeyState is n) → MonkeyState (is <> newItems) n)
 
-    states' ∷ MonkeyStates
-    states' = Map.unionWith (<>) (itemLocationsToStates newItemLocations)
-            . Map.insert ix s1
-            $ states
-
-    itemLocationsToStates ∷ [Pair Int Integer] → MonkeyStates
-    itemLocationsToStates = Map.fromListWith (<>) . toList . fmap \case
-        (throwTo :!: item) -> (throwTo, MonkeyState (Seq.singleton item) 0)
 
 runRound ∷ Monkeys → (Integer → Integer) → MonkeyStates → MonkeyStates
 runRound monkeys shrinkWorry s0 = foldl' (runMonkeyTurn monkeys shrinkWorry) s0 [0..nMonkeys-1]
