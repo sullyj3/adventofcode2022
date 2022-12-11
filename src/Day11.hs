@@ -3,12 +3,12 @@ module Day11 (main) where
 
 import           AOC
 import           AOC.Parse
-import           Data.List             (partition)
-import           Data.Map.Strict       ((!))
-import qualified Data.Map.Strict       as M
-import qualified Data.Map.Strict       as Map
-import           Relude.Unsafe         ((!!))
-import           Text.Megaparsec.Char  (hspace1, newline, string)
+import           Data.List            (partition)
+import           Data.Map.Strict      ((!))
+import qualified Data.Map.Strict      as M
+import qualified Data.Map.Strict      as Map
+import           Relude.Unsafe        ((!!))
+import           Text.Megaparsec.Char (hspace1, newline, string)
 
 
 -- I'd prefer to use functions, but I want to derive Show for monkey
@@ -82,9 +82,10 @@ monkeyP = do
   pure Monkey {..}
 
 binOp ∷ Parser Operation
-binOp = try (Plus <$ single '+' <*> (hspace1 *> decimal))
-    <|> try (Times <$ single '*' <*> (hspace1 *> decimal))
-    <|>     (TimesOld <$ string "* old")
+binOp = choice [ try $ Plus <$ single '+' <*> (hspace1 *> decimal)
+               , try $ Times <$ single '*' <*> (hspace1 *> decimal)
+               ,       TimesOld <$ string "* old"
+               ]
 
 
 -- |~) _  __|_  /~\ _  _
