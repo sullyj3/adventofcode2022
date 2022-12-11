@@ -141,7 +141,6 @@ runRound monkeys shrinkWorry s0 = foldl' (runMonkeyTurn monkeys shrinkWorry) s0 
 -- |~) _  __|_  ~|~  _
 -- |~ (_||  |    |VV(_)
 --
--- >>> part2 . parseInput $ exampleInput
 part2 ∷ [Monkey] → Int
 part2 ms = common (`mod` commonMultiple) 10000 ms
   where
