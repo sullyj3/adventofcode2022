@@ -24,7 +24,7 @@ runOp op old = case op of
   Times x  -> old * x
   TimesOld -> old * old
 
-newtype Test = DivisibleBy Integer
+newtype Test = DivisibleBy { divisor :: Integer }
   deriving (Eq, Ord, Show)
 
 runTest ∷ Test → Integer → Bool
@@ -88,11 +88,11 @@ binOp = try (Plus <$ single '+' <*> (hspace1 *> decimal))
 -- |~ (_||  |   \_/| |(/_
 --
 common ∷ (Integer → Integer) → Int → [Monkey] → Int
-common maybeShrinkWorry nRounds ms = product . take 2 . sortOn Down $ inspectionCounts
+common shrinkWorry nRounds ms = product . take 2 . sortOn Down $ inspectionCounts
   where
   monkeys = initMonkeys ms
   s0 = initMonkeyStates ms
-  s1 = iterate (runRound monkeys maybeShrinkWorry) s0 !! nRounds
+  s1 = iterate (runRound monkeys shrinkWorry) s0 !! nRounds
   inspectionCounts = (.inspectionCount) <$> Map.elems s1
 
 part1 ∷ [Monkey] → Int
@@ -105,30 +105,32 @@ initMonkeys ∷ [Monkey] → Monkeys
 initMonkeys = fromList . map \m → (m.index, m)
 
 runMonkeyTurn ∷ Monkeys → (Integer → Integer) → MonkeyStates → Int → MonkeyStates
-runMonkeyTurn monkeys maybeShrinkWorry states ix = states'
+runMonkeyTurn monkeys shrinkWorry states ix = states'
   where
     s0 = states ! ix
     monkey = monkeys ! ix
+
     newItemLocations = map decideItem (toList s0.currentItems)
 
+    decideItem item =
+        let worryLevel = shrinkWorry $ runOp monkey.operation item
+            throwTo | runTest monkey.test worryLevel = monkey.throwToIfTrue
+                    | otherwise                      = monkey.throwToIfFalse
+        in (throwTo :!: worryLevel)
+
     s1 = MonkeyState Seq.empty (s0.inspectionCount + Seq.length s0.currentItems)
+
     states' ∷ MonkeyStates
     states' = Map.unionWith (<>) (itemLocationsToStates newItemLocations)
             . Map.insert ix s1
             $ states
 
-    decideItem item =
-        let worryLevel = maybeShrinkWorry $ runOp monkey.operation item
-            throwTo | runTest monkey.test worryLevel = monkey.throwToIfTrue
-                    | otherwise                      = monkey.throwToIfFalse
-        in (throwTo :!: worryLevel)
-
-itemLocationsToStates ∷ [Pair Int Integer] → MonkeyStates
-itemLocationsToStates = Map.fromListWith (<>) . toList . fmap \case
-    (ix :!: item) -> (ix, MonkeyState (Seq.singleton item) 0)
+    itemLocationsToStates ∷ [Pair Int Integer] → MonkeyStates
+    itemLocationsToStates = Map.fromListWith (<>) . toList . fmap \case
+        (throwTo :!: item) -> (throwTo, MonkeyState (Seq.singleton item) 0)
 
 runRound ∷ Monkeys → (Integer → Integer) → MonkeyStates → MonkeyStates
-runRound monkeys maybeShrinkWorry s0 = foldl' (runMonkeyTurn monkeys maybeShrinkWorry) s0 [0..nMonkeys-1]
+runRound monkeys shrinkWorry s0 = foldl' (runMonkeyTurn monkeys shrinkWorry) s0 [0..nMonkeys-1]
   where
     nMonkeys = Map.size s0
 
@@ -139,7 +141,7 @@ runRound monkeys maybeShrinkWorry s0 = foldl' (runMonkeyTurn monkeys maybeShrink
 part2 ∷ [Monkey] → Int
 part2 ms = common (`mod` commonMultiple) 10000 ms
   where
-    commonMultiple = product . map (\(Monkey _ _ _ (DivisibleBy x) _ _) -> x) $ ms
+    commonMultiple = product . map ((.divisor) . (.test)) $ ms
 
 
 -- |\/| _ . _
