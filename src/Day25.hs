@@ -1,24 +1,35 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 module Day25 (main) where
 
 import           AOC
 import           AOC.Parse
 import           AOC.Parsers
-import qualified Data.Text   as T
-import           PyF
-import           Utils       (tRead)
+import PyF ( str )
 
--------------
--- Parsing --
--------------
+-- ╔═╗┌─┐┬─┐┌─┐┬┌┐┌┌─┐                  
+-- ╠═╝├─┤├┬┘└─┐│││││ ┬                  
+-- ╩  ┴ ┴┴└─└─┘┴┘└┘└─┘                  
+
+-- >>> parseInput $ exampleInput
+parseInput :: a -> a
 parseInput = id
 -- parseInput = unsafeParse numLine
 -- parseInput = toString
 
----------------
--- Solutions --
----------------
-part1 = const ()
-part2 = const ()
+-- ╔═╗┌─┐┬─┐┌┬┐  ╔═╗┌┐┌┌─┐              
+-- ╠═╝├─┤├┬┘ │   ║ ║│││├┤               
+-- ╩  ┴ ┴┴└─ ┴   ╚═╝┘└┘└─┘              
+-- >>> part1 . parseInput $ exampleInput
+part1 :: a -> a
+part1 = id
+
+-- ╔═╗┌─┐┬─┐┌┬┐  ╔╦╗┬ ┬┌─┐              
+-- ╠═╝├─┤├┬┘ │    ║ ││││ │              
+-- ╩  ┴ ┴┴└─ ┴    ╩ └┴┘└─┘              
+
+-- >>> part2 . parseInput $ exampleInput
+part2 :: a -> a
+part2 = id
 
 main ∷ IO ()
 main = do
@@ -28,6 +39,9 @@ main = do
 
   -- aocMain "inputs/25.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
 
+-- ╔═╗─┐ ┬┌─┐┌┬┐┌─┐┬  ┌─┐  ┬┌┐┌┌─┐┬ ┬┌┬┐
+-- ║╣ ┌┴┬┘├─┤│││├─┘│  ├┤   ││││├─┘│ │ │ 
+-- ╚═╝┴ └─┴ ┴┴ ┴┴  ┴─┘└─┘  ┴┘└┘┴  └─┘ ┴
 exampleInput :: Text
 exampleInput = toText @String [str||]
 
