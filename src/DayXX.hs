@@ -11,10 +11,8 @@ import PyF ( str )
 -- ╩  ┴ ┴┴└─└─┘┴┘└┘└─┘                  
 
 -- >>> parseInput $ exampleInput
-parseInput :: a -> a
-parseInput = id
--- parseInput = unsafeParse numLine
--- parseInput = toString
+parseInput :: Text -> [()]
+parseInput = unsafeParse $ linesOf $ pure ()
 
 -- ╔═╗┌─┐┬─┐┌┬┐  ╔═╗┌┐┌┌─┐              
 -- ╠═╝├─┤├┬┘ │   ║ ║│││├┤               
@@ -36,7 +34,6 @@ main = do
   -- other testing here
 
   aocSinglePartMain "inputs/XX.txt" exampleInput parseInput part1
-
   -- aocMain "inputs/XX.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
 
 -- ╔═╗─┐ ┬┌─┐┌┬┐┌─┐┬  ┌─┐  ┬┌┐┌┌─┐┬ ┬┌┬┐
