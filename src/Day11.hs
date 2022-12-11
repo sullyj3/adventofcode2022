@@ -1,20 +1,16 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
-{-# LANGUAGE NoFieldSelectors #-}
 module Day11 (main) where
 
 import           AOC
 import           AOC.Parse
+import           Data.Map.Strict      ((!))
+import qualified Data.Map.Strict      as Map
+import qualified Data.Sequence        as Seq
+import           Data.Strict          (Pair)
+import           Data.Strict.Tuple    (Pair (..))
 import           PyF                  (str)
+import           Relude.Unsafe        ((!!))
 import           Text.Megaparsec.Char (hspace1, newline, string)
-import Data.Map.Strict ((!))
-import qualified Data.Map.Strict as Map
-import Utils (prettyMap)
-import Relude.Unsafe ((!!))
-import qualified Data.Sequence as Seq
-import Data.Sequence ((|>))
-import Data.Traversable (for)
-import Data.Strict (Pair)
-import Data.Strict.Tuple (Pair(..))
 
 -- I'd prefer to use functions, but I want to derive Show for monkey
 data Operation = Plus !Integer
@@ -22,16 +18,16 @@ data Operation = Plus !Integer
                | TimesOld
   deriving (Eq, Ord, Show)
 
-runOp :: Operation -> Integer -> Integer
-runOp op old = {-# SCC "runOp" #-} case op of
-  Plus  x -> old + x
-  Times x -> old * x
+runOp ∷ Operation → Integer → Integer
+runOp op old = case op of
+  Plus  x  -> old + x
+  Times x  -> old * x
   TimesOld -> old * old
 
 newtype Test = DivisibleBy Integer
   deriving (Eq, Ord, Show)
 
-runTest :: Test -> Integer -> Bool
+runTest ∷ Test → Integer → Bool
 runTest = \case
   DivisibleBy x -> (== 0) . (`mod` x)
 
@@ -50,7 +46,7 @@ data MonkeyState = MonkeyState { currentItems    :: !(Seq Integer)
   deriving (Eq, Ord, Show)
 
 instance Semigroup MonkeyState where
-  (<>) :: MonkeyState -> MonkeyState -> MonkeyState
+  (<>) :: MonkeyState → MonkeyState → MonkeyState
   MonkeyState items1 count1 <> MonkeyState items2 count2 =
     MonkeyState (items1 <> items2) (count1 + count2)
 
@@ -64,10 +60,8 @@ type MonkeyStates = Map Int MonkeyState
 -- |~) _  _ _. _  _
 -- |~ (_|| _\|| |(_|
 --                _|
--- >>> parseInput $ exampleInput
--- [Monkey {index = 0, initialItems = [79,98], operation = Times 19, test = DivisibleBy 23, throwToIfTrue = 2, throwToIfFalse = 3},Monkey {index = 1, initialItems = [54,65,75,74], operation = Plus 6, test = DivisibleBy 19, throwToIfTrue = 2, throwToIfFalse = 0},Monkey {index = 2, initialItems = [79,60,97], operation = TimesOld, test = DivisibleBy 13, throwToIfTrue = 1, throwToIfFalse = 3},Monkey {index = 3, initialItems = [74], operation = Plus 3, test = DivisibleBy 17, throwToIfTrue = 0, throwToIfFalse = 1}]
 parseInput ∷ Text → [Monkey]
-parseInput = unsafeParse $ 
+parseInput = unsafeParse $
   monkeyP `sepEndBy` (try (void $ newline <* newline) <|> eof)
 
 monkeyP ∷ Parser Monkey
@@ -93,8 +87,7 @@ binOp = try (Plus <$ single '+' <*> (hspace1 *> decimal))
 -- |~) _  __|_  /~\ _  _
 -- |~ (_||  |   \_/| |(/_
 --
--- >>> part1 . parseInput $ exampleInput
-common ∷ (Integer -> Integer) -> Int -> [Monkey] → Int
+common ∷ (Integer → Integer) → Int → [Monkey] → Int
 common maybeShrinkWorry nRounds ms = product . take 2 . sortOn Down $ inspectionCounts
   where
   monkeys = initMonkeys ms
@@ -111,30 +104,30 @@ initMonkeyStates = fromList . map \m → (m.index, MonkeyState (Seq.fromList m.i
 initMonkeys ∷ [Monkey] → Monkeys
 initMonkeys = fromList . map \m → (m.index, m)
 
-runMonkeyTurn ∷ Monkeys -> (Integer -> Integer) -> MonkeyStates -> Int -> MonkeyStates
-runMonkeyTurn monkeys maybeShrinkWorry states ix = {-# SCC "runMonkeyTurn" #-} states'
+runMonkeyTurn ∷ Monkeys → (Integer → Integer) → MonkeyStates → Int → MonkeyStates
+runMonkeyTurn monkeys maybeShrinkWorry states ix = states'
   where
     s0 = states ! ix
     monkey = monkeys ! ix
     newItemLocations = map decideItem (toList s0.currentItems)
 
     s1 = MonkeyState Seq.empty (s0.inspectionCount + Seq.length s0.currentItems)
-    states' :: MonkeyStates
+    states' ∷ MonkeyStates
     states' = Map.unionWith (<>) (itemLocationsToStates newItemLocations)
             . Map.insert ix s1
             $ states
 
-    decideItem item = {-# SCC "decideItem" #-}
+    decideItem item =
         let worryLevel = maybeShrinkWorry $ runOp monkey.operation item
-            throwTo | {-# SCC "runTest" #-} runTest monkey.test worryLevel = monkey.throwToIfTrue
+            throwTo | runTest monkey.test worryLevel = monkey.throwToIfTrue
                     | otherwise                      = monkey.throwToIfFalse
         in (throwTo :!: worryLevel)
 
-itemLocationsToStates ∷ [Pair Int Integer] -> MonkeyStates
+itemLocationsToStates ∷ [Pair Int Integer] → MonkeyStates
 itemLocationsToStates = Map.fromListWith (<>) . toList . fmap \case
     (ix :!: item) -> (ix, MonkeyState (Seq.singleton item) 0)
 
-runRound ∷ Monkeys -> (Integer -> Integer) -> MonkeyStates -> MonkeyStates
+runRound ∷ Monkeys → (Integer → Integer) → MonkeyStates → MonkeyStates
 runRound monkeys maybeShrinkWorry s0 = foldl' (runMonkeyTurn monkeys maybeShrinkWorry) s0 [0..nMonkeys-1]
   where
     nMonkeys = Map.size s0
@@ -154,12 +147,7 @@ part2 ms = common (`mod` commonMultiple) 10000 ms
 --
 main ∷ IO ()
 main = do
-  -- other testing here
-  -- putText . prettyMap . initMonkeys . parseInput $ exampleInput
-  -- putText . prettyMap . runRound
-  --   $ initMonkeys $ parseInput exampleInput
-  aocSinglePartMain "inputs/11.txt" exampleInput parseInput part2
-  -- aocMain "inputs/11.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
+  aocMain "inputs/11.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
 
 
 -- (~   _  _ _  _ | _   . _  _   _|_
