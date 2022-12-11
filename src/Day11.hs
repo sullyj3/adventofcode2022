@@ -18,17 +18,8 @@ data Operation = Plus Int
                | TimesOld
   deriving (Show)
 
-runOp ∷ Operation → Int → Int
-runOp op old = case op of
-  Plus  x  -> old + x
-  Times x  -> old * x
-  TimesOld -> old * old
-
 newtype Test = DivisibleBy { divisor :: Int }
   deriving (Eq, Ord, Show)
-
-runTest ∷ Test → Int → Bool
-runTest (DivisibleBy x) n = (n `mod` x) == 0
 
 data Monkey = Monkey { index          :: Int
                      , initialItems   :: [Int]
@@ -44,7 +35,6 @@ data MonkeyState = MonkeyState { currentItems    :: ![Int]
                                }
   deriving (Show, Generic)
 
--- Keyed by monkey id
 -- Information about how the monkeys behave. This does not change after initial setup
 type Monkeys = [Monkey]
 
@@ -98,10 +88,10 @@ part1 = monkeyBusinessLvl (`div` 3) 20
 monkeyBusinessLvl ∷ (Int → Int) → Int → Monkeys → Int
 monkeyBusinessLvl shrinkWorry nRounds monkeys = product . take 2 . sortOn Down $ inspectionCounts
   where
-  initialStates = M.fromList $
-    (\Monkey {index, initialItems} → (index, MonkeyState initialItems 0)) <$> monkeys
-  finalStates = iterate (runRound monkeys shrinkWorry) initialStates !! nRounds
-  inspectionCounts = (.inspectionCount) <$> Map.elems finalStates
+    initialStates = M.fromList $
+      (\Monkey {index, initialItems} → (index, MonkeyState initialItems 0)) <$> monkeys
+    finalStates = iterate (runRound monkeys shrinkWorry) initialStates !! nRounds
+    inspectionCounts = (.inspectionCount) <$> Map.elems finalStates
 
 runMonkeyTurn ∷ (Int → Int) → MonkeyStates → Monkey → MonkeyStates
 runMonkeyTurn shrinkWorry states monkey = states
@@ -112,6 +102,13 @@ runMonkeyTurn shrinkWorry states monkey = states
     MonkeyState {currentItems, inspectionCount} = states ! monkey.index
     worryLevels = shrinkWorry . runOp monkey.operation <$> currentItems
     (trues, falses) = partition (runTest monkey.test) worryLevels
+
+    runOp op old = case op of
+      Plus  x  -> old + x
+      Times x  -> old * x
+      TimesOld -> old * old
+
+    runTest (DivisibleBy x) n = (n `mod` x) == 0
 
 runRound ∷ Monkeys → (Int → Int) → MonkeyStates → MonkeyStates
 runRound monkeys shrinkWorry initialStates =
