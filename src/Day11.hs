@@ -97,9 +97,10 @@ part1 = monkeyBusinessLvl (`div` 3) 20
 monkeyBusinessLvl ∷ (Int → Int) → Int → Monkeys → Int
 monkeyBusinessLvl shrinkWorry nRounds monkeys = product . take 2 . sortOn Down $ inspectionCounts
   where
-  s0 = M.fromList $ (\m → (m.index, MonkeyState m.initialItems 0)) <$> monkeys
-  s1 = iterate (runRound monkeys shrinkWorry) s0 !! nRounds
-  inspectionCounts = (.inspectionCount) <$> Map.elems s1
+  initialStates = M.fromList $
+    (\Monkey {index, initialItems} → (index, MonkeyState initialItems 0)) <$> monkeys
+  finalStates = iterate (runRound monkeys shrinkWorry) initialStates !! nRounds
+  inspectionCounts = (.inspectionCount) <$> Map.elems finalStates
 
 runMonkeyTurn ∷ (Int → Int) → MonkeyStates → Monkey → MonkeyStates
 runMonkeyTurn shrinkWorry states monkey =
@@ -116,7 +117,8 @@ runMonkeyTurn shrinkWorry states monkey =
     appendItems items ms = ms { currentItems = ms.currentItems <> items }
 
 runRound ∷ Monkeys → (Int → Int) → MonkeyStates → MonkeyStates
-runRound monkeys shrinkWorry s0 = foldl' (runMonkeyTurn shrinkWorry) s0 monkeys
+runRound monkeys shrinkWorry initialStates =
+  foldl' (runMonkeyTurn shrinkWorry) initialStates monkeys
 
 
 -- |~) _  __|_  ~|~  _
