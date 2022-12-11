@@ -5,12 +5,11 @@ import           AOC
 import           AOC.Parse
 import           Data.List            (partition)
 import           Data.Map.Strict      ((!))
-import qualified Data.Map.Strict      as M
 import qualified Data.Map.Strict      as Map
 import           Optics.Core          (ix, (%), (%~), (.~))
 import           Relude.Unsafe        ((!!))
 import           Text.Megaparsec.Char (hspace1, newline, string)
-import           Text.Show.Functions
+import           Text.Show.Functions  ()
 import           Utils                (divides)
 
 
@@ -81,7 +80,7 @@ part1 = monkeyBusinessLvl (`div` 3) 20
 monkeyBusinessLvl ∷ (Int → Int) → Int → Monkeys → Int
 monkeyBusinessLvl shrinkWorry nRounds monkeys = product . take 2 . sortOn Down $ inspectionCounts
   where
-    initialStates = M.fromList $
+    initialStates = Map.fromList $
       (\Monkey {index, initialItems} → (index, MonkeyState initialItems 0)) <$> monkeys
     finalStates = iterate (runRound monkeys shrinkWorry) initialStates !! nRounds
     inspectionCounts = (.inspectionCount) <$> Map.elems finalStates
