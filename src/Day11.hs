@@ -118,7 +118,6 @@ runMonkeyTurn monkeys shrinkWorry states ix = Map.insert ix currMonkeyState'
     newItemLocations ∷ Map Int [Integer]
     newItemLocations = Map.fromListWith (<>)
                      . map (second (:[]) . decideThrow)
-                     . toList
                      $ currMonkeyState.currentItems
 
     decideThrow ∷ Integer → (Int, Integer)
