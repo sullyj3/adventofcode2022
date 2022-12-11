@@ -97,7 +97,6 @@ runMonkeyTurn shrinkWorry states monkey = states
     worryLevels = shrinkWorry . monkey.operation <$> currentItems
     (trues, falses) = partition (monkey.divisor `divides`) worryLevels
 
-
 runRound ∷ Monkeys → (Int → Int) → MonkeyStates → MonkeyStates
 runRound monkeys shrinkWorry initialStates =
   foldl' (runMonkeyTurn shrinkWorry) initialStates monkeys
