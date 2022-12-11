@@ -10,6 +10,7 @@ import           PyF                   (str)
 import           Relude.Unsafe         ((!!))
 import           Text.Megaparsec.Char  (hspace1, newline, string)
 
+
 -- I'd prefer to use functions, but I want to derive Show for monkey
 data Operation = Plus !Int
                | Times !Int
@@ -55,6 +56,7 @@ instance Monoid MonkeyState where
 type Monkeys = Map Int Monkey
 type MonkeyStates = Map Int MonkeyState
 
+
 -- |~) _  _ _. _  _
 -- |~ (_|| _\|| |(_|
 --                _|
@@ -81,6 +83,7 @@ binOp ∷ Parser Operation
 binOp = try (Plus <$ single '+' <*> (hspace1 *> decimal))
     <|> try (Times <$ single '*' <*> (hspace1 *> decimal))
     <|>     (TimesOld <$ string "* old")
+
 
 -- |~) _  __|_  /~\ _  _
 -- |~ (_||  |   \_/| |(/_
@@ -132,11 +135,11 @@ runMonkeyTurn monkeys shrinkWorry states ix = Map.insert ix currMonkeyState'
       Merge.preserveMissing
       (Merge.zipWithMatched \_ newItems (MonkeyState is n) → MonkeyState (is <> newItems) n)
 
-
 runRound ∷ Monkeys → (Int → Int) → MonkeyStates → MonkeyStates
 runRound monkeys shrinkWorry s0 = foldl' (runMonkeyTurn monkeys shrinkWorry) s0 [0..nMonkeys-1]
   where
     nMonkeys = Map.size s0
+
 
 -- |~) _  __|_  ~|~  _
 -- |~ (_||  |    |VV(_)
