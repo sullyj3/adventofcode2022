@@ -7,24 +7,17 @@ import           Data.List            (partition)
 import           Data.Map.Strict      ((!))
 import qualified Data.Map.Strict      as M
 import qualified Data.Map.Strict      as Map
+import           Optics.Core          (ix, (%), (%~), (.~))
 import           Relude.Unsafe        ((!!))
 import           Text.Megaparsec.Char (hspace1, newline, string)
-import Optics.Core ((%~), (%), ix, (.~))
+import           Text.Show.Functions
+import           Utils                (divides)
 
-
--- I'd prefer to use functions, but I want to derive Show for monkey
-data Operation = Plus Int
-               | Times Int
-               | TimesOld
-  deriving (Show)
-
-newtype Test = DivisibleBy { divisor :: Int }
-  deriving (Eq, Ord, Show)
 
 data Monkey = Monkey { index          :: Int
                      , initialItems   :: [Int]
-                     , operation      :: Operation
-                     , test           :: Test
+                     , operation      :: Int -> Int
+                     , divisor        :: Int
                      , throwToIfTrue  :: Int
                      , throwToIfFalse :: Int
                      }
@@ -33,7 +26,7 @@ data Monkey = Monkey { index          :: Int
 data MonkeyState = MonkeyState { currentItems    :: ![Int]
                                , inspectionCount :: !Int
                                }
-  deriving (Show, Generic)
+  deriving (Generic, Show)
 
 -- Information about how the monkeys behave. This does not change after initial setup
 type Monkeys = [Monkey]
@@ -62,7 +55,7 @@ monkeyP = do
   operation <- binOp <* newline
 
   _ <- hspace1 <* string "Test: divisible by "
-  test <- DivisibleBy <$> decimal <* newline
+  divisor <- decimal <* newline
 
   _ <- hspace1 <* string "If true: throw to monkey "
   throwToIfTrue <- decimal <* newline
@@ -72,10 +65,10 @@ monkeyP = do
 
   pure Monkey {..}
 
-binOp ∷ Parser Operation
-binOp = choice [ try $ Plus <$ single '+' <*> (hspace1 *> decimal)
-               , try $ Times <$ single '*' <*> (hspace1 *> decimal)
-               ,       TimesOld <$ string "* old"
+binOp ∷ Parser (Int → Int)
+binOp = choice [ try $ (+) <$ single '+' <*> (hspace1 *> decimal)
+               , try $ (*) <$ single '*' <*> (hspace1 *> decimal)
+               ,  join (*) <$ string "* old"
                ]
 
 
@@ -100,15 +93,9 @@ runMonkeyTurn shrinkWorry states monkey = states
   & ix monkey.index .~ MonkeyState [] (inspectionCount + length currentItems)
   where
     MonkeyState {currentItems, inspectionCount} = states ! monkey.index
-    worryLevels = shrinkWorry . runOp monkey.operation <$> currentItems
-    (trues, falses) = partition (runTest monkey.test) worryLevels
+    worryLevels = shrinkWorry . monkey.operation <$> currentItems
+    (trues, falses) = partition (monkey.divisor `divides`) worryLevels
 
-    runOp op old = case op of
-      Plus  x  -> old + x
-      Times x  -> old * x
-      TimesOld -> old * old
-
-    runTest (DivisibleBy x) n = (n `mod` x) == 0
 
 runRound ∷ Monkeys → (Int → Int) → MonkeyStates → MonkeyStates
 runRound monkeys shrinkWorry initialStates =
@@ -121,7 +108,7 @@ runRound monkeys shrinkWorry initialStates =
 part2 ∷ Monkeys → Int
 part2 ms = monkeyBusinessLvl (`mod` commonMultiple) 10000 ms
   where
-    commonMultiple = product . map ((.divisor) . (.test)) $ ms
+    commonMultiple = product . map (.divisor) $ ms
 
 
 -- |\/| _ . _

@@ -7,8 +7,8 @@ import qualified Data.Map.Strict as Map
 import qualified Data.Set        as Set
 import qualified Data.Text       as T
 import           Numeric
+import           Optics.Core     (imap)
 import qualified Relude.Unsafe   as Unsafe
-import Optics.Core (imap)
 
 both ∷ Bifunctor f ⇒ (a → b) → f a a → f b b
 both = join bimap
@@ -113,3 +113,6 @@ data CardinalDir = U | D | L | R deriving (Eq, Show)
 
 imap1 ∷ (Int → a → b) → [a] → [b]
 imap1 f = imap (f . (+1))
+
+divides ∷ Integral a ⇒ a → a → Bool
+divides divisor dividend = dividend `mod` divisor == 0
