@@ -17,13 +17,13 @@ import Data.Strict (Pair)
 import Data.Strict.Tuple (Pair(..))
 
 -- I'd prefer to use functions, but I want to derive Show for monkey
-data Operation = Plus Integer
-               | Times Integer
+data Operation = Plus !Integer
+               | Times !Integer
                | TimesOld
   deriving (Eq, Ord, Show)
 
 runOp :: Operation -> Integer -> Integer
-runOp op old = case op of
+runOp op old = {-# SCC "runOp" #-} case op of
   Plus  x -> old + x
   Times x -> old * x
   TimesOld -> old * old
@@ -50,10 +50,12 @@ data MonkeyState = MonkeyState { currentItems    :: !(Seq Integer)
   deriving (Eq, Ord, Show)
 
 instance Semigroup MonkeyState where
+  (<>) :: MonkeyState -> MonkeyState -> MonkeyState
   MonkeyState items1 count1 <> MonkeyState items2 count2 =
     MonkeyState (items1 <> items2) (count1 + count2)
 
 instance Monoid MonkeyState where
+  mempty :: MonkeyState
   mempty = MonkeyState mempty 0
 
 type Monkeys = Map Int Monkey
@@ -110,15 +112,11 @@ initMonkeys ∷ [Monkey] → Monkeys
 initMonkeys = fromList . map \m → (m.index, m)
 
 runMonkeyTurn ∷ Monkeys -> (Integer -> Integer) -> MonkeyStates -> Int -> MonkeyStates
-runMonkeyTurn monkeys maybeShrinkWorry states ix = states'
+runMonkeyTurn monkeys maybeShrinkWorry states ix = {-# SCC "runMonkeyTurn" #-} states'
   where
     s0 = states ! ix
     monkey = monkeys ! ix
-    newItemLocations = flip fmap s0.currentItems \item ->
-        let worryLevel = maybeShrinkWorry $ runOp monkey.operation item
-            throwTo | runTest monkey.test worryLevel = monkey.throwToIfTrue
-                    | otherwise                      = monkey.throwToIfFalse
-        in (throwTo :!: worryLevel)
+    newItemLocations = map decideItem (toList s0.currentItems)
 
     s1 = MonkeyState Seq.empty (s0.inspectionCount + Seq.length s0.currentItems)
     states' :: MonkeyStates
@@ -126,10 +124,15 @@ runMonkeyTurn monkeys maybeShrinkWorry states ix = states'
             . Map.insert ix s1
             $ states
 
-itemLocationsToStates ∷ Seq (Pair Int Integer) -> MonkeyStates
-itemLocationsToStates = foldr add mempty
-  where
-    add (ix :!: item) = Map.insertWith (<>) ix (MonkeyState (Seq.singleton item) 0)
+    decideItem item = {-# SCC "decideItem" #-}
+        let worryLevel = maybeShrinkWorry $ runOp monkey.operation item
+            throwTo | {-# SCC "runTest" #-} runTest monkey.test worryLevel = monkey.throwToIfTrue
+                    | otherwise                      = monkey.throwToIfFalse
+        in (throwTo :!: worryLevel)
+
+itemLocationsToStates ∷ [Pair Int Integer] -> MonkeyStates
+itemLocationsToStates = Map.fromListWith (<>) . toList . fmap \case
+    (ix :!: item) -> (ix, MonkeyState (Seq.singleton item) 0)
 
 runRound ∷ Monkeys -> (Integer -> Integer) -> MonkeyStates -> MonkeyStates
 runRound monkeys maybeShrinkWorry s0 = foldl' (runMonkeyTurn monkeys maybeShrinkWorry) s0 [0..nMonkeys-1]
@@ -141,7 +144,9 @@ runRound monkeys maybeShrinkWorry s0 = foldl' (runMonkeyTurn monkeys maybeShrink
 --
 -- >>> part2 . parseInput $ exampleInput
 part2 ∷ [Monkey] → Int
-part2 = common id 10000
+part2 ms = common (`mod` commonMultiple) 10000 ms
+  where
+    commonMultiple = product . map (\(Monkey _ _ _ (DivisibleBy x) _ _) -> x) $ ms
 
 
 -- |\/| _ . _
