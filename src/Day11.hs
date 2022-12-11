@@ -9,6 +9,7 @@ import qualified Data.Map.Strict      as M
 import qualified Data.Map.Strict      as Map
 import           Relude.Unsafe        ((!!))
 import           Text.Megaparsec.Char (hspace1, newline, string)
+import Optics.Core ((%~))
 
 
 -- I'd prefer to use functions, but I want to derive Show for monkey
@@ -41,7 +42,7 @@ data Monkey = Monkey { index          :: Int
 data MonkeyState = MonkeyState { currentItems    :: ![Int]
                                , inspectionCount :: !Int
                                }
-  deriving (Show)
+  deriving (Show, Generic)
 
 -- Keyed by monkey id
 -- Information about how the monkeys behave. This does not change after initial setup
@@ -105,16 +106,13 @@ monkeyBusinessLvl shrinkWorry nRounds monkeys = product . take 2 . sortOn Down $
 runMonkeyTurn ∷ (Int → Int) → MonkeyStates → Monkey → MonkeyStates
 runMonkeyTurn shrinkWorry states monkey =
     Map.insert (monkey.index) (MonkeyState [] (inspectionCount + length currentItems))
-    . Map.adjust (appendItems trues) monkey.throwToIfTrue
-    . Map.adjust (appendItems falses) monkey.throwToIfFalse
+    . Map.adjust (#currentItems %~ (<> trues))  monkey.throwToIfTrue
+    . Map.adjust (#currentItems %~ (<> falses)) monkey.throwToIfFalse
     $ states
   where
     MonkeyState {currentItems, inspectionCount} = states ! monkey.index
     worryLevels = shrinkWorry . runOp monkey.operation <$> currentItems
     (trues, falses) = partition (runTest monkey.test) worryLevels
-
-    appendItems ∷ [Int] → MonkeyState → MonkeyState
-    appendItems items ms = ms { currentItems = ms.currentItems <> items }
 
 runRound ∷ Monkeys → (Int → Int) → MonkeyStates → MonkeyStates
 runRound monkeys shrinkWorry initialStates =

@@ -29,6 +29,7 @@ default-extensions:
 # records
 - RecordWildCards
 - OverloadedRecordDot
+- OverloadedLabels # for #label optics
 
 dependencies:
   - name: base
