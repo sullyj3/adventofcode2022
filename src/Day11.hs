@@ -96,14 +96,13 @@ monkeyBusinessLvl shrinkWorry nRounds monkeys = product . take 2 . sortOn Down $
 
 runMonkeyTurn ∷ Monkeys → (Int → Int) → MonkeyStates → Int → MonkeyStates
 runMonkeyTurn monkeys shrinkWorry states ix =
-    Map.insert ix currMonkeyState'
+    Map.insert ix (MonkeyState [] (inspectionCount + length currentItems))
     . Map.adjust (appendItems trues) monkey.throwToIfTrue
     . Map.adjust (appendItems falses) monkey.throwToIfFalse
     $ states
   where
     monkey = monkeys ! ix
     MonkeyState {currentItems, inspectionCount} = states ! ix
-    currMonkeyState' = MonkeyState [] (inspectionCount + length currentItems)
     worryLevels = shrinkWorry . runOp monkey.operation <$> currentItems
     (trues, falses) = partition (runTest monkey.test) worryLevels
 
