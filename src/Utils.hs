@@ -116,3 +116,8 @@ imap1 f = imap (f . (+1))
 
 divides ∷ Integral a ⇒ a → a → Bool
 divides divisor dividend = dividend `mod` divisor == 0
+
+nTimes :: (Eq t, Num t) => t -> (b -> b) -> b -> b
+nTimes n f = go n
+  where go 0 = id
+        go i = f . go (i-1)

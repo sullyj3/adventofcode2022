@@ -10,7 +10,7 @@ import           Optics.Core          (ix, (%), (%~), (.~))
 import           Relude.Unsafe        ((!!))
 import           Text.Megaparsec.Char (hspace1, newline, string)
 import           Text.Show.Functions  ()
-import           Utils                (divides)
+import           Utils                (divides, nTimes)
 
 
 data Monkey = Monkey { index          :: Int
@@ -27,12 +27,13 @@ data MonkeyState = MonkeyState { currentItems    :: ![Int]
                                }
   deriving (Generic, Show)
 
--- Information about how the monkeys behave. This does not change after initial setup
+-- Information about how the monkeys behave. This does not change after initial 
+-- setup
 type Monkeys = [Monkey]
 
 -- Keyed by monkey id
--- Information about the current state of the monkeys - their current held items and
--- inspection count
+-- Information about the current state of the monkeys - their current held 
+-- items and inspection count
 type MonkeyStates = Map Int MonkeyState
 
 
@@ -78,11 +79,12 @@ part1 ∷ Monkeys → Int
 part1 = monkeyBusinessLvl (`div` 3) 20
 
 monkeyBusinessLvl ∷ (Int → Int) → Int → Monkeys → Int
-monkeyBusinessLvl shrinkWorry nRounds monkeys = product . take 2 . sortOn Down $ inspectionCounts
+monkeyBusinessLvl shrinkWorry nRounds monkeys =
+  product . take 2 . sortOn Down $ inspectionCounts
   where
     initialStates = Map.fromList $
-      (\Monkey {index, initialItems} → (index, MonkeyState initialItems 0)) <$> monkeys
-    finalStates = iterate (runRound monkeys shrinkWorry) initialStates !! nRounds
+      (\monkey → (monkey.index, MonkeyState monkey.initialItems 0)) <$> monkeys
+    finalStates = nTimes nRounds (runRound monkeys shrinkWorry) initialStates
     inspectionCounts = (.inspectionCount) <$> Map.elems finalStates
 
 runMonkeyTurn ∷ (Int → Int) → MonkeyStates → Monkey → MonkeyStates
@@ -115,4 +117,5 @@ part2 ms = monkeyBusinessLvl (`mod` commonMultiple) 10000 ms
 --
 main ∷ IO ()
 main = do
-  aocMain "inputs/11.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
+  aocMain "inputs/11.txt" 
+          Solution { parse=parseInput, part1=part1, part2=part2 }
