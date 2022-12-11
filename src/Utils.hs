@@ -106,6 +106,14 @@ countUniq = Set.size . Set.fromList
 
 -- Compose a unary function with a binary one
 -- Known as "Atop" in BQN
+--   (.) . (.) cd abc
+-- = ((cd .) .) abc
+-- = ((cd .) . abc
+
+--   (((cd .) . abc) a b
+-- = ((cd .) abc a) b
+-- = (cd . abc a) b
+-- = cd (abc a b)
 (.:) ∷ (c → d) → (a → b → c) → a → b → d
 (.:) = (.) . (.)
 
