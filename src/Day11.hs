@@ -58,21 +58,27 @@ type MonkeyStates = Map Int MonkeyState
 --                _|
 parseInput ∷ Text → Monkeys
 parseInput = unsafeParse $
-  monkeyP `sepEndBy` (try (void $ newline <* newline) <|> eof)
+  monkeyP `sepEndBy` (try (void newline) <|> eof)
 
 monkeyP ∷ Parser Monkey
 monkeyP = do
   index <- string "Monkey " *> decimal <* single ':' <* newline
+
   _ <- hspace1 *> string "Starting items: "
   initialItems <- decimal `sepBy` string ", " <* newline
+
   _ <- hspace1 *> string "Operation: new = old "
-  operation <- binOp
-  _ <- newline <* hspace1 <* string "Test: divisible by "
-  test <- DivisibleBy <$> decimal
-  _ <- newline <* hspace1 <* string "If true: throw to monkey "
-  throwToIfTrue <- decimal
-  _ <- newline <* hspace1 <* string "If false: throw to monkey "
-  throwToIfFalse <- decimal
+  operation <- binOp <* newline
+
+  _ <- hspace1 <* string "Test: divisible by "
+  test <- DivisibleBy <$> decimal <* newline
+
+  _ <- hspace1 <* string "If true: throw to monkey "
+  throwToIfTrue <- decimal <* newline
+
+  _ <- hspace1 <* string "If false: throw to monkey "
+  throwToIfFalse <- decimal <* newline
+
   pure Monkey {..}
 
 binOp ∷ Parser Operation
