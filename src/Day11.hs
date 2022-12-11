@@ -12,6 +12,9 @@ import Utils (prettyMap)
 import Relude.Unsafe ((!!))
 import qualified Data.Sequence as Seq
 import Data.Sequence ((|>))
+import Data.Traversable (for)
+import Data.Strict (Pair)
+import Data.Strict.Tuple (Pair(..))
 
 -- I'd prefer to use functions, but I want to derive Show for monkey
 data Operation = Plus Integer
@@ -45,6 +48,13 @@ data MonkeyState = MonkeyState { currentItems    :: !(Seq Integer)
                                , inspectionCount :: !Int
                                }
   deriving (Eq, Ord, Show)
+
+instance Semigroup MonkeyState where
+  MonkeyState items1 count1 <> MonkeyState items2 count2 =
+    MonkeyState (items1 <> items2) (count1 + count2)
+
+instance Monoid MonkeyState where
+  mempty = MonkeyState mempty 0
 
 type Monkeys = Map Int Monkey
 type MonkeyStates = Map Int MonkeyState
@@ -100,24 +110,31 @@ initMonkeys ∷ [Monkey] → Monkeys
 initMonkeys = fromList . map \m → (m.index, m)
 
 runMonkeyTurn ∷ Monkeys -> (Integer -> Integer) -> MonkeyStates -> Int -> MonkeyStates
-runMonkeyTurn monkeys maybeShrinkWorry states ix = flip execState states $ do
-  for_ s0.currentItems \item -> do
-    let worryLevel = maybeShrinkWorry $ runOp monkey.operation item
-        throwTo | runTest monkey.test worryLevel = monkey.throwToIfTrue
-                | otherwise                      = monkey.throwToIfFalse
-    modifyMonkeyState (\s -> s { currentItems = s.currentItems |> worryLevel }) throwTo 
-  let s1 = MonkeyState Seq.empty (s0.inspectionCount + fromIntegral (length s0.currentItems))
-  modifyMonkeyState (const s1) ix
+runMonkeyTurn monkeys maybeShrinkWorry states ix = states'
   where
     s0 = states ! ix
     monkey = monkeys ! ix
-    modifyMonkeyState :: (MonkeyState -> MonkeyState) -> Int -> State MonkeyStates ()
-    modifyMonkeyState f = modify . Map.adjust f
+    newItemLocations = flip fmap s0.currentItems \item ->
+        let worryLevel = maybeShrinkWorry $ runOp monkey.operation item
+            throwTo | runTest monkey.test worryLevel = monkey.throwToIfTrue
+                    | otherwise                      = monkey.throwToIfFalse
+        in (throwTo :!: worryLevel)
+
+    s1 = MonkeyState Seq.empty (s0.inspectionCount + Seq.length s0.currentItems)
+    states' :: MonkeyStates
+    states' = Map.unionWith (<>) (itemLocationsToStates newItemLocations)
+            . Map.insert ix s1
+            $ states
+
+itemLocationsToStates ∷ Seq (Pair Int Integer) -> MonkeyStates
+itemLocationsToStates = foldr add mempty
+  where
+    add (ix :!: item) = Map.insertWith (<>) ix (MonkeyState (Seq.singleton item) 0)
 
 runRound ∷ Monkeys -> (Integer -> Integer) -> MonkeyStates -> MonkeyStates
 runRound monkeys maybeShrinkWorry s0 = foldl' (runMonkeyTurn monkeys maybeShrinkWorry) s0 [0..nMonkeys-1]
   where
-    nMonkeys = fromIntegral $ Map.size s0
+    nMonkeys = Map.size s0
 
 -- |~) _  __|_  ~|~  _
 -- |~ (_||  |    |VV(_)
@@ -136,7 +153,7 @@ main = do
   -- putText . prettyMap . initMonkeys . parseInput $ exampleInput
   -- putText . prettyMap . runRound
   --   $ initMonkeys $ parseInput exampleInput
-  aocSinglePartMain "inputs/11.txt" exampleInput parseInput part1
+  aocSinglePartMain "inputs/11.txt" exampleInput parseInput part2
   -- aocMain "inputs/11.txt" Solution { parse=parseInput, part1=part1, part2=part2 }
 
 
