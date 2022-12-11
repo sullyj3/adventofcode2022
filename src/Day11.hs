@@ -9,7 +9,7 @@ import qualified Data.Map.Strict      as M
 import qualified Data.Map.Strict      as Map
 import           Relude.Unsafe        ((!!))
 import           Text.Megaparsec.Char (hspace1, newline, string)
-import Optics.Core ((%~))
+import Optics.Core ((%~), (%), ix, (.~))
 
 
 -- I'd prefer to use functions, but I want to derive Show for monkey
@@ -104,11 +104,10 @@ monkeyBusinessLvl shrinkWorry nRounds monkeys = product . take 2 . sortOn Down $
   inspectionCounts = (.inspectionCount) <$> Map.elems finalStates
 
 runMonkeyTurn ∷ (Int → Int) → MonkeyStates → Monkey → MonkeyStates
-runMonkeyTurn shrinkWorry states monkey =
-    Map.insert (monkey.index) (MonkeyState [] (inspectionCount + length currentItems))
-    . Map.adjust (#currentItems %~ (<> trues))  monkey.throwToIfTrue
-    . Map.adjust (#currentItems %~ (<> falses)) monkey.throwToIfFalse
-    $ states
+runMonkeyTurn shrinkWorry states monkey = states
+  & ix monkey.throwToIfFalse % #currentItems %~ (<> falses)
+  & ix monkey.throwToIfTrue  % #currentItems %~ (<> trues)
+  & ix monkey.index .~ MonkeyState [] (inspectionCount + length currentItems)
   where
     MonkeyState {currentItems, inspectionCount} = states ! monkey.index
     worryLevels = shrinkWorry . runOp monkey.operation <$> currentItems
