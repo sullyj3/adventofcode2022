@@ -53,6 +53,9 @@ dependencies:
   - vector
   - strict
   - containers
+  - massiv
+  - list-transformer
+  - pqueue
 
 ghc-options:
 - -Wall
